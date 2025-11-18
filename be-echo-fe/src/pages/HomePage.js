@@ -4,12 +4,7 @@ import { CameraIcon, InfoIcon } from "../components/icons";
 import { HighlightCard, StatPill, Character } from "../components/ui";
 import { useAppData } from "../contexts/AppDataContext";
 import useTumblerVerification from "../hooks/useTumblerVerification";
-import {
-  GRADE_ORDER,
-  GRADE_THRESHOLDS,
-  deriveGradeName,
-  deriveGradeCode,
-} from "../utils/grade";
+import { deriveGradeCode, getGradeGuide } from "../utils/grade";
 
 const readFileAsDataUrl = (file) =>
   new Promise((resolve, reject) => {
@@ -19,46 +14,30 @@ const readFileAsDataUrl = (file) =>
     reader.readAsDataURL(file);
   });
 
-// 등급 가이드 생성
-const GRADE_GUIDE = GRADE_ORDER.map((grade) => {
-  const threshold = GRADE_THRESHOLDS[grade];
-  const name = deriveGradeName(threshold);
-  return {
-    label: name,
-    range:
-      threshold === GRADE_THRESHOLDS.master
-        ? `${threshold} LP 이상`
-        : `${threshold} LP`,
-    description: name,
-    accent: grade,
-  };
-}).reverse();
-
-// TODO: icon 수정
 const CERT_GUIDE = [
   {
     title: "텀블러가 잘 보이고 있나요?",
     detail: "텀블러가 잘 보이도록 촬영해주세요.",
     accent: "primary",
-    icon: "",
+    icon: "📸",
   },
   {
     title: "밝은 곳에서 촬영해주세요.",
     detail: "주변이 너무 어둡거나 밝으면 인식률이 떨어질 수 있어요.",
     accent: "sunny",
-    icon: "",
+    icon: "☀️",
   },
   {
     title: "일회용 컵은 치워주세요!",
     detail: "텀블러 주변에 일회용 컵이 있으면 텀블러 인식이 어려울 수 있어요.",
     accent: "clean",
-    icon: "",
+    icon: "🗑️",
   },
   {
     title: "연속 촬영은 불가능해요.",
     detail: "텀블러 인증은 하루 한 번만 가능해요.",
     accent: "warning",
-    icon: "",
+    icon: "⏰",
   },
 ];
 
@@ -237,7 +216,7 @@ const HomePage = () => {
               {/* 등급 안내 */}
               {isGradeInfoOpen && (
                 <div className="home-guide-grid">
-                  {GRADE_GUIDE.map((item) => (
+                  {getGradeGuide().map((item) => (
                     <article
                       key={item.label}
                       className={`home-guide-card grade-card accent-${

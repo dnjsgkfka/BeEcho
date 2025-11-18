@@ -4,6 +4,9 @@ import { ReactComponent as HomeIconSvg } from "./HomeIcon.svg";
 import { ReactComponent as InfoIconSvg } from "./InfoIcon.svg";
 import { ReactComponent as RotateIconSvg } from "./RotateIcon.svg";
 import { ReactComponent as SettingsIconSvg } from "./SettingsIcon.svg";
+import { ReactComponent as LockIconSvg } from "./LockIcon.svg";
+import { ReactComponent as ChartIconSvg } from "./ChartIcon.svg";
+import { ReactComponent as TrophyIconSvg } from "./TrophyIcon.svg";
 
 export const CameraIcon = () => <CameraIconSvg />;
 
@@ -16,3 +19,13 @@ export const InfoIcon = () => <InfoIconSvg />;
 export const RotateIcon = () => <RotateIconSvg />;
 
 export const SettingsIcon = () => <SettingsIconSvg />;
+
+export const LockIcon = () => <LockIconSvg />;
+
+export const ChartIcon = ({ active }) => (
+  <ChartIconSvg className={active ? "active" : ""} />
+);
+
+export const TrophyIcon = ({ active }) => (
+  <TrophyIconSvg className={active ? "active" : ""} />
+);

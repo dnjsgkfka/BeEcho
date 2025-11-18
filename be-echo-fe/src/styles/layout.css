@@ -147,6 +147,8 @@
 .icon-button svg {
   width: 22px;
   height: 22px;
+  display: block;
+  flex-shrink: 0;
 }
 
 .bottom-nav {
@@ -156,11 +158,12 @@
   right: 0;
   z-index: 20;
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   background: #fff;
   padding: 12px 18px calc(18px + env(safe-area-inset-bottom));
   border-top: 1px solid rgba(9, 19, 31, 0.06);
   gap: 10px;
+  box-shadow: 0 -12px 30px rgba(9, 19, 31, 0.08);
 }
 
 .bottom-nav button {
@@ -174,7 +177,7 @@
   color: var(--muted);
   font-size: 12px;
   font-weight: 600;
-  padding: 3px 0;
+  padding: 6px 0;
   cursor: pointer;
 }
 
@@ -185,6 +188,8 @@
 .bottom-nav svg {
   width: 22px;
   height: 22px;
+  display: block;
+  flex-shrink: 0;
 }
 
 .bottom-nav svg.active {
@@ -197,6 +202,26 @@
   overflow-y: auto;
   min-height: 0;
   position: relative;
+  /* 스크롤바 숨김 */
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+.screen::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+.screen::-webkit-scrollbar-track {
+  display: none !important;
+  background: transparent !important;
+}
+
+.screen::-webkit-scrollbar-thumb {
+  display: none !important;
+  background: transparent !important;
 }
 
 @media (max-width: 420px) {
@@ -204,4 +229,3 @@
     padding: 20px 18px 16px;
   }
 }
-

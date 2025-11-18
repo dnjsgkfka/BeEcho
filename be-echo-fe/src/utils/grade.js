@@ -1,6 +1,6 @@
 // 등급 정의
 export const GRADE_THRESHOLDS = {
-  bronze: 10,
+  bronze: 0,
   silver: 30,
   gold: 60,
   platinum: 120,
@@ -89,4 +89,23 @@ export const getGradeInfo = (lp) => {
     progress,
     remainingLP: nextLP ? nextLP - lp : 0,
   };
+};
+
+// 등급 가이드 생성
+export const getGradeGuide = () => {
+  return GRADE_ORDER.map((grade) => {
+    const threshold = GRADE_THRESHOLDS[grade];
+    const name = deriveGradeName(threshold);
+    return {
+      label: name,
+      range:
+        threshold === 0
+          ? "0 LP부터"
+          : threshold === GRADE_THRESHOLDS.master
+          ? `${threshold} LP 이상`
+          : `${threshold} LP`,
+      description: name,
+      accent: grade,
+    };
+  }).reverse();
 };

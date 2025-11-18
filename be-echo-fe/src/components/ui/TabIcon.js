@@ -1,8 +1,10 @@
 import React from "react";
-import { HomeIcon } from "../icons";
+import { HomeIcon, TrophyIcon, ChartIcon } from "../icons";
 
 const ICON_MAP = {
   home: HomeIcon,
+  insights: ChartIcon,
+  trophy: TrophyIcon,
 };
 
 const TabIcon = ({ name, active }) => {

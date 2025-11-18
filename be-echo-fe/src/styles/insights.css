@@ -1,0 +1,84 @@
+.insights-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.insights-section {
+  margin-bottom: 30px;
+}
+
+.trend-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.trend-list li {
+  display: grid;
+  grid-template-columns: 80px 1fr 56px;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.trend-bar {
+  height: 8px;
+  background: rgba(9, 19, 31, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.trend-bar-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #00d775, #00a85c);
+}
+
+.trend-count {
+  text-align: right;
+  font-weight: 600;
+}
+
+.insight-delta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(
+    135deg,
+    rgba(5, 196, 107, 0.12),
+    rgba(3, 163, 88, 0.08)
+  );
+  border-radius: 18px;
+  padding: 16px 18px;
+}
+
+.delta-card h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #028858;
+}
+
+.delta-card p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.delta-details {
+  text-align: right;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.delta-details strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  color: #028858;
+}

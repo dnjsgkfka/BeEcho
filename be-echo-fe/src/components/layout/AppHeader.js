@@ -44,8 +44,19 @@ const AppHeader = ({ userName, lp, streak, fact, onReset, onUpdateName }) => {
               {lp ?? 0} LP · {streak ?? 0}일
             </span>
           </div>
-          {/* TODO: 데이터 초기화 안내 팝업 */}
-          <IconButton label="초기화" onClick={() => onReset?.()}>
+          <IconButton
+            label="초기화"
+            onClick={() => {
+              if (
+                onReset &&
+                window.confirm(
+                  "데이터 초기화 버튼 클릭 시 데이터가 초기화됩니다. 정말 초기화하시겠습니까?"
+                )
+              ) {
+                onReset();
+              }
+            }}
+          >
             <RotateIcon />
           </IconButton>
           <IconButton label="설정" onClick={toggleSettings}>
@@ -79,8 +90,14 @@ const AppHeader = ({ userName, lp, streak, fact, onReset, onUpdateName }) => {
                 type="button"
                 className="danger"
                 onClick={() => {
-                  onReset();
-                  setSettingsOpen(false);
+                  if (
+                    window.confirm(
+                      "데이터 초기화 버튼 클릭 시 데이터가 초기화됩니다. 정말 초기화하시겠습니까?"
+                    )
+                  ) {
+                    onReset();
+                    setSettingsOpen(false);
+                  }
                 }}
               >
                 모든 데이터 초기화
@@ -100,4 +117,3 @@ const AppHeader = ({ userName, lp, streak, fact, onReset, onUpdateName }) => {
 };
 
 export default AppHeader;
-

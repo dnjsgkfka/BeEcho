@@ -5,6 +5,7 @@ const createDefaultState = () => ({
     lp: 0,
     streakDays: 0,
     bestStreak: 0,
+    totalSuccessCount: 0,
     lastSuccessDate: null,
     lastVerificationDate: null,
   },
@@ -13,4 +14,3 @@ const createDefaultState = () => ({
 });
 
 export default createDefaultState;
-

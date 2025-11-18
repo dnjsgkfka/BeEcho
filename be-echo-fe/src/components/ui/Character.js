@@ -16,39 +16,42 @@ const Character = ({ lp = 0, streakDays = 0 }) => {
   // 다음 단계까지 필요한 LP
   const nextStageLP = useMemo(() => getNextGradeLP(lp), [lp]);
 
-  {
-    /* TODO: emoji, name, description 추가 */
-  }
   const stageInfo = {
     bronze: {
-      emoji: "lv1",
-      name: "lv1",
-      description: "lv1",
+      emoji: "🌱",
+      name: "브론즈 등급",
+      description: "환경 보호의 첫 걸음을 시작했어요!",
+      color: "#cd7f32",
     },
     silver: {
-      emoji: "lv2",
-      name: "lv2",
-      description: "lv2",
+      emoji: "🌿",
+      name: "실버 등급",
+      description: "꾸준한 노력으로 환경을 지키고 있어요!",
+      color: "#c0c0c0",
     },
     gold: {
-      emoji: "lv3",
-      name: "lv3",
-      description: "lv3",
+      emoji: "🌳",
+      name: "골드 등급",
+      description: "환경 보호의 중추 역할을 하고 있어요!",
+      color: "#ffd700",
     },
     platinum: {
-      emoji: "lv4",
-      name: "lv4",
-      description: "lv4",
+      emoji: "🌺",
+      name: "플래티넘 등급",
+      description: "환경 보호의 전문가가 되었어요!",
+      color: "#e5e4e2",
     },
     diamond: {
-      emoji: "lv5",
-      name: "lv5",
-      description: "lv5",
+      emoji: "🌍",
+      name: "다이아몬드 등급",
+      description: "지구를 지키는 리더가 되었어요!",
+      color: "#b9f2ff",
     },
     master: {
-      emoji: "lv6",
-      name: "lv6",
-      description: "lv6",
+      emoji: "👑",
+      name: "에코 마스터",
+      description: "환경 보호의 최고 달인! 당신은 진정한 에코 히어로예요!",
+      color: "#05c46b",
     },
   };
 

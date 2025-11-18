@@ -3,11 +3,15 @@ import "../../styles/layout.css";
 import AppHeader from "./AppHeader";
 import BottomNavigation from "./BottomNavigation";
 import HomePage from "../../pages/HomePage";
+import InsightsPage from "../../pages/InsightsPage";
+import AchievementsPage from "../../pages/AchievementsPage";
 import { DEFAULT_TAB } from "../../constants/navigation";
 import { useAppData } from "../../contexts/AppDataContext";
 
 const TAB_COMPONENTS = {
   home: HomePage,
+  insights: InsightsPage,
+  achievements: AchievementsPage,
 };
 
 const MainLayout = ({ activeTab = DEFAULT_TAB, onChangeTab }) => {
