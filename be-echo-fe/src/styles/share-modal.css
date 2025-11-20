@@ -1,0 +1,175 @@
+.share-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.share-modal-content {
+  background: white;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+  position: relative;
+  align-self: center;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.share-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  border-bottom: 1px solid rgba(9, 19, 31, 0.1);
+  flex-shrink: 0;
+}
+
+.share-modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text, #09131f);
+}
+
+.share-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--muted, #6b7280);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.share-modal-close:hover {
+  background: rgba(9, 19, 31, 0.05);
+}
+
+.share-modal-body {
+  padding: 24px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.share-modal-actions {
+  padding: 24px;
+  border-top: 1px solid rgba(9, 19, 31, 0.1);
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.share-modal-button {
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  flex: 1;
+  transition: all 0.3s;
+}
+
+.share-button-primary {
+  background: #4d94ff;
+  color: white;
+}
+
+.share-button-primary:hover {
+    background: #2379fb;
+    color: white;
+  }
+
+.share-button-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.share-button-twitter {
+  background: #515151;
+  color: white;
+}
+
+.share-button-twitter:hover {
+  background: #272727;
+  color: white;
+}
+
+@media (max-width: 640px) {
+  .share-modal-overlay {
+    padding: 10px;
+    align-items: center;
+  }
+
+  .share-modal-content {
+    max-width: 100%;
+    max-height: calc(100vh - 20px);
+    border-radius: 20px;
+    margin: auto;
+  }
+
+  .share-modal-header {
+    padding: 20px;
+    flex-shrink: 0;
+  }
+
+  .share-modal-body {
+    padding: 20px 16px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .share-modal-actions {
+    padding: 20px;
+    flex-shrink: 0;
+  }
+}

@@ -1,16 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import "../styles/achievements.css";
 import { AchievementCard } from "../components/ui";
+import ShareModal from "../components/ui/ShareModal";
 import { useAppData } from "../contexts/AppDataContext";
 
 const AchievementsPage = () => {
-  const { achievements } = useAppData();
+  const { achievements, user, insights } = useAppData();
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   return (
     <section className="screen-section achievements">
       <div className="page-heading">
-        <h2>업적</h2>
-        <p className="page-subtitle">{achievements.progress}</p>
+        <div className="page-heading-row">
+          <div>
+            <h2>업적</h2>
+            <p className="page-subtitle">{achievements.progress}</p>
+          </div>
+          <button
+            className="share-button"
+            onClick={() => setIsShareModalOpen(true)}
+          >
+            지금까지의 환경 보호 활동을 공유해보세요!
+          </button>
+        </div>
       </div>
       <div className="achievement-grid">
         {achievements.all.map((achievement) => (
@@ -24,6 +36,14 @@ const AchievementsPage = () => {
           />
         ))}
       </div>
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        user={user}
+        insights={insights}
+        achievements={achievements}
+      />
     </section>
   );
 };
