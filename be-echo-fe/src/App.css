@@ -2,7 +2,7 @@
 
 :root {
   color-scheme: light;
-  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --bg: #eef3f8;
   --primary: #05c46b;
   --primary-dark: #009955;
@@ -50,7 +50,7 @@ body::-webkit-scrollbar {
 }
 
 body {
-  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 #root {
@@ -117,23 +117,6 @@ body {
   flex-direction: column;
 }
 
-.screen {
-  flex: 1;
-  padding: 0 24px 24px;
-  overflow-y: auto;
-  min-height: 0;
-  position: relative;
-  /* 스크롤바 숨김 */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
-}
-
-.screen::-webkit-scrollbar {
-  display: none !important; /* Chrome, Safari, Opera */
-  width: 0 !important;
-  height: 0 !important;
-}
-
 .screen-section {
   color: var(--text);
 }
@@ -198,45 +181,6 @@ body {
 
 .stat-pill.highlight {
   background: #fff8e6;
-}
-
-.highlight-card {
-  background: #fff;
-  border-radius: 18px;
-  padding: 16px 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px solid rgba(9, 19, 31, 0.05);
-}
-
-.highlight-title {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.highlight-desc {
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.highlight-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 14px;
-  border-radius: 14px;
-  background: #ebfff5;
-  color: var(--primary-dark);
-  font-weight: 600;
-  font-size: 13px;
-}
-
-.highlight-pill.warning {
-  background: #ffefef;
-  color: #ff6b6b;
 }
 
 .empty-state {

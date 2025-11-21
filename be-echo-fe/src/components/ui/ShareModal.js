@@ -20,7 +20,7 @@ const ShareModal = ({ isOpen, onClose, user, insights, achievements }) => {
   };
 
   const handleTwitterShare = () => {
-    const text = `beECHO에서 ${user.lp} LP, ${user.streakDays}일 연속 인증 중! 텀블러 사용으로 환경 보호에 함께해요!`;
+    const text = `BeEcho.에서 ${user.lp} LP, ${user.streakDays}일 연속 인증 중! 텀블러 사용으로 환경 보호에 함께해요!`;
     const url = window.location.origin;
     shareToTwitter(text, url);
   };

@@ -441,7 +441,7 @@
   gap: 20px;
   box-shadow: 0 20px 48px rgba(9, 19, 31, 0.3);
   max-height: 90vh;
-  overflow: visible;
+  overflow-y: auto;
 }
 
 .verification-success-modal-header {
@@ -480,13 +480,14 @@
 
 .verification-success-modal-body {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  gap: 16px;
   min-height: 0;
   padding: 0;
 }
 
 .verification-success-image-wrapper {
+  position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
   border-radius: 16px;
@@ -501,12 +502,67 @@
   object-fit: cover;
   object-position: center;
   display: block;
-  min-width: 100%;
-  min-height: 100%;
+}
+
+.verification-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  backdrop-filter: blur(2px);
+}
+
+.verification-loading-overlay .verification-loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.verification-error-message {
+  margin: 0;
+  padding: 14px 18px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 77, 77, 0.1),
+    rgba(255, 77, 77, 0.05)
+  );
+  border-radius: 12px;
+  color: #ff4d4d;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.6;
+  border: 1px solid rgba(255, 77, 77, 0.2);
 }
 
 @media (max-width: 520px) {
   .verification-success-modal {
     padding: 16px;
+  }
+
+  .verification-success-modal-content {
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .verification-success-modal-header h3 {
+    font-size: 18px;
+  }
+
+  .verification-loading-overlay .verification-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+  }
+
+  .verification-error-message {
+    padding: 12px 16px;
+    font-size: 13px;
   }
 }

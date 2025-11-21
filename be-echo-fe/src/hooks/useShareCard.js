@@ -1,8 +1,7 @@
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
 import html2canvas from "html2canvas";
 
 const useShareCard = () => {
-  const cardRef = useRef(null);
 
   const generateImage = useCallback(async () => {
     const cardElement = document.getElementById("share-card");
@@ -68,7 +67,7 @@ const useShareCard = () => {
         try {
           await navigator.share({
             files: [file],
-            title: "BE-ECHO 활동 인증",
+            title: "BeEcho. 활동 인증",
             text: "저의 환경 보호 활동 기록입니다! 🌍 #BE_ECHO #텀블러인증",
           });
           return { success: true, method: "share" };
@@ -117,10 +116,8 @@ const useShareCard = () => {
   }, [generateImage, shareImage]);
 
   return {
-    cardRef,
     handleShare,
     shareToTwitter,
-    generateImage,
   };
 };
 
