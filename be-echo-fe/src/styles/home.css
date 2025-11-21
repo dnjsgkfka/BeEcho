@@ -40,50 +40,75 @@
   border-radius: inherit;
 }
 
-.certification-card {
-  background: #fff7ef;
+/* 인증하러가기 카드 */
+.verification-cta-card {
+  background: linear-gradient(135deg, #fff7ef, #ffe8d6);
   border-radius: var(--radius-lg);
-  padding: 22px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  padding: 20px 24px;
   margin-bottom: 20px;
+  box-shadow: 0 12px 30px rgba(9, 19, 31, 0.08);
+  border: 2px solid rgba(255, 127, 80, 0.15);
 }
 
-.card-title {
+.verification-cta-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+@media (min-width: 520px) {
+  .verification-cta-content {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.verification-cta-text h3 {
+  margin: 0 0 6px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.verification-cta-text p {
   margin: 0;
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.card-subtitle {
-  margin: 6px 0 0;
-  color: #ff7f50;
   font-size: 13px;
+  color: #ff7f50;
+  line-height: 1.5;
 }
 
-.secondary-button {
+.verification-cta-button {
   height: 44px;
   border-radius: 18px;
   border: none;
   background: #05c46b;
   color: #fff;
-  padding: 0 20px;
+  padding: 0 24px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   cursor: pointer;
   font-weight: 600;
+  font-size: 14px;
   box-shadow: 0 12px 24px rgba(5, 196, 107, 0.28);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.secondary-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.verification-cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px rgba(5, 196, 107, 0.35);
 }
 
-.secondary-button svg {
+.verification-cta-button:active {
+  transform: translateY(0);
+}
+
+.verification-cta-button svg {
   width: 18px;
   height: 18px;
   display: block;
@@ -131,18 +156,6 @@
   height: 18px;
   display: block;
   flex-shrink: 0;
-}
-
-.card-title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.card-title-row .info-button {
-  position: static;
-  background: rgba(5, 196, 107, 0.16);
-  color: #05c46b;
 }
 
 .home-modal {
@@ -221,10 +234,6 @@
 .home-guide-card.grade-card {
   flex-direction: column;
   gap: 10px;
-}
-
-.home-guide-card.cert-card {
-  align-items: center;
 }
 
 .home-guide-card.active {
@@ -317,11 +326,6 @@
   .home-guide-grid:has(.grade-card) {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
-  }
-
-  .home-guide-grid:has(.cert-card) {
-    grid-template-columns: 1fr;
-    gap: 12px;
   }
 
   .home-guide-card {
