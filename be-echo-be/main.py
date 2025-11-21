@@ -1,7 +1,7 @@
 import io
 from fastapi import FastAPI, UploadFile, File
 from ultralytics import YOLO
-from PIL import Image
+from PIL import Image, ImageOps
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -34,7 +34,8 @@ async def predict_image(file: UploadFile = File(...)):
     
     try:
         image = Image.open(io.BytesIO(contents))
-        print("이미지 변환 성공.")
+        image = ImageOps.exif_transpose(image)
+        print("이미지 변환 성공 및 회전 보정 성공.")
     except Exception as e:
         print(f"이미지 변환 실패: {e}")
         return {"success": False, "error": "이미지 파일 형식이 잘못되었습니다."}
@@ -69,9 +70,9 @@ async def predict_image(file: UploadFile = File(...)):
         success = True
         message = "텀블러 인증 성공!"
     elif is_disposable_present:
-        message = "텀블러 인증 실패! 일회용 컵이 감지되었습니다."
+        message = "일회용 컵으로 인식됩니다. 내일은 텀블러 사용으로 환경 보호를 실천해보세요! "
     else:
-        message = "텀블러 인증 실패! 텀블러가 감지되지 않았습니다."
+        message = "텀블러가 인식되지 않습니다. 텀블러가 잘 보이게 다시 찍어주세요!"
 
     # 인증 성공/실패 반환
     return {"success": success, "message": message, "detected": detected_objects}
