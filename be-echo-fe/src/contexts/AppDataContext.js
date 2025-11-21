@@ -590,29 +590,13 @@ export const AppDataProvider = ({ children }) => {
   }, [state]);
 
   useEffect(() => {
-    if (!state.fact?.id) {
-      const nextId = pickRandomFactId(null);
-      setState((prev) => ({
-        ...prev,
-        fact: { id: nextId, updatedAt: Date.now() },
-      }));
-      return;
-    }
-
-    {
-      /* 환경 정보 업데이트 */
-    }
-    const lastUpdated = state.fact.updatedAt
-      ? new Date(state.fact.updatedAt)
-      : null;
-    if (!lastUpdated || differenceInDays(lastUpdated, new Date()) !== 0) {
-      const nextId = pickRandomFactId(state.fact.id);
-      setState((prev) => ({
-        ...prev,
-        fact: { id: nextId, updatedAt: Date.now() },
-      }));
-    }
-  }, [state.fact]);
+    // 새로고침할 때마다 랜덤으로 fact 선택
+    const nextId = pickRandomFactId(null);
+    setState((prev) => ({
+      ...prev,
+      fact: { id: nextId, updatedAt: Date.now() },
+    }));
+  }, []); // 빈 배열로 마운트 시에만 실행
 
   const logVerification = useCallback((payload) => {
     let meta = { accepted: false };

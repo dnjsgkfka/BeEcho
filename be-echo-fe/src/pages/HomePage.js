@@ -7,7 +7,7 @@ import { useNavigation } from "../contexts/NavigationContext";
 import { deriveGradeCode, getGradeGuide } from "../utils/grade";
 
 const HomePage = () => {
-  const { home, user } = useAppData();
+  const { home, user, fact } = useAppData();
   const { changeTab } = useNavigation();
   const [isGradeInfoOpen, setGradeInfoOpen] = useState(false);
 
@@ -65,7 +65,7 @@ const HomePage = () => {
             <header>
               <div>
                 <h3>등급 안내</h3>
-                <p>다음 등급까지 남은 LP를 확인해보세요.</p>
+                <p>LP를 획득하여 더 높은 등급에 도전해보세요!</p>
               </div>
               <button
                 type="button"
@@ -90,13 +90,20 @@ const HomePage = () => {
                     <div className="home-guide-text">
                       <h4>{item.label}</h4>
                       <span>{item.range}</span>
-                      <p>{item.description}</p>
                     </div>
                   </article>
                 ))}
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 하단 fact */}
+      {fact?.description && (
+        <div className="page-bottom-fact">
+          <strong>{fact.title || "오늘의 환경 정보"}</strong>
+          <p>{fact.description}</p>
         </div>
       )}
     </section>

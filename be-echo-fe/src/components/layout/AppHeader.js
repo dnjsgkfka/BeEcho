@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { IconButton } from "../ui";
+import { IconButton, Logo } from "../ui";
 import { SettingsIcon, RotateIcon } from "../icons";
 
 const AppHeader = ({ userName, lp, streak, fact, onReset, onUpdateName }) => {
@@ -30,8 +30,11 @@ const AppHeader = ({ userName, lp, streak, fact, onReset, onUpdateName }) => {
     <header className="app-header">
       <div className="header-top">
         <div className="brand">
+          <Logo size={28} />
           <div className="brand-copy">
-            <span className="brand-name">BeEcho</span>
+            <span className="brand-name">
+              Be<span className="brand-name-accent">Echo</span>.
+            </span>
             <span className="brand-subtitle">
               {/* TODO: 브랜드 서브타이틀 */}
             </span>
@@ -104,12 +107,6 @@ const AppHeader = ({ userName, lp, streak, fact, onReset, onUpdateName }) => {
               </button>
             )}
           </form>
-        </div>
-      )}
-      {fact?.description && (
-        <div className="header-fact">
-          <strong>{fact.title || "오늘의 환경 정보"}</strong>
-          <p>{fact.description}</p>
         </div>
       )}
     </header>
