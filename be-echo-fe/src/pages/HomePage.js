@@ -8,11 +8,11 @@ import { deriveGradeCode, getGradeGuide } from "../utils/grade";
 
 const HomePage = () => {
   const { home, user } = useAppData();
-  const { onChangeTab } = useNavigation();
+  const { changeTab } = useNavigation();
   const [isGradeInfoOpen, setGradeInfoOpen] = useState(false);
 
   const handleGoToVerification = () => {
-    onChangeTab("verification");
+    changeTab("verification");
   };
 
   return (

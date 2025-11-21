@@ -6,8 +6,8 @@ import HomePage from "../../pages/HomePage";
 import VerificationPage from "../../pages/VerificationPage";
 import InsightsPage from "../../pages/InsightsPage";
 import AchievementsPage from "../../pages/AchievementsPage";
-import { DEFAULT_TAB } from "../../constants/navigation";
 import { useAppData } from "../../contexts/AppDataContext";
+import { useNavigation } from "../../contexts/NavigationContext";
 
 const TAB_COMPONENTS = {
   home: HomePage,
@@ -16,7 +16,8 @@ const TAB_COMPONENTS = {
   achievements: AchievementsPage,
 };
 
-const MainLayout = ({ activeTab = DEFAULT_TAB, onChangeTab }) => {
+const MainLayout = () => {
+  const { activeTab, changeTab } = useNavigation();
   const ActiveComponent = TAB_COMPONENTS[activeTab] || HomePage;
   const { user, fact, actions } = useAppData();
 
@@ -33,7 +34,7 @@ const MainLayout = ({ activeTab = DEFAULT_TAB, onChangeTab }) => {
       <main className="screen">
         <ActiveComponent />
       </main>
-      <BottomNavigation activeTab={activeTab} onChangeTab={onChangeTab} />
+      <BottomNavigation activeTab={activeTab} onChangeTab={changeTab} />
     </div>
   );
 };
