@@ -23,27 +23,23 @@
   animation: float 3s ease-in-out infinite;
 }
 
-.character-emoji.stage-seed {
-  font-size: 60px;
-}
-
-.character-emoji.stage-sprout {
+.character-emoji.stage-bronze {
   font-size: 70px;
 }
 
-.character-emoji.stage-bronze {
+.character-emoji.stage-silver {
   font-size: 80px;
 }
 
-.character-emoji.stage-silver {
+.character-emoji.stage-gold {
   font-size: 90px;
 }
 
-.character-emoji.stage-green {
+.character-emoji.stage-platinum {
   font-size: 100px;
 }
 
-.character-emoji.stage-leader {
+.character-emoji.stage-diamond {
   font-size: 110px;
 }
 
