@@ -9,7 +9,7 @@ const footprintFacts = [
     id: "plastic-cups-2",
     title: "한국 일회용 컵 사용량",
     description:
-      "한국에서는 연간 9억 3,989만개의 일회용컵이 버려진다고 합니다. beEcho로 텀블러 사용 습관을 들여보세요.",
+      "한국에서는 연간 9억 3,989만개의 일회용컵이 버려진다고 합니다. BeEcho.로 텀블러 사용 습관을 들여보세요.",
   },
   {
     id: "recycle-rate",
@@ -21,7 +21,7 @@ const footprintFacts = [
     id: "tree",
     title: "나무 지키기",
     description:
-      "일회용 종이컵 120억 개를 만들기 위해서는, 1500만 그루의 나무가 희생됩니다. beEcho를 통해 나무를 지키세요.",
+      "일회용 종이컵 120억 개를 만들기 위해서는, 1500만 그루의 나무가 희생됩니다. BeEcho.를 통해 나무를 지키세요.",
   },
   {
     id: "micro-plastic",

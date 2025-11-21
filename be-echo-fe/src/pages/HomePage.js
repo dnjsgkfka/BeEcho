@@ -1,19 +1,13 @@
 import React, { useState } from "react";
 import "../styles/home.css";
-import { InfoIcon, CameraIcon } from "../components/icons";
+import { InfoIcon } from "../components/icons";
 import { StatPill, Character } from "../components/ui";
 import { useAppData } from "../contexts/AppDataContext";
-import { useNavigation } from "../contexts/NavigationContext";
 import { deriveGradeCode, getGradeGuide } from "../utils/grade";
 
 const HomePage = () => {
   const { home, user, fact } = useAppData();
-  const { changeTab } = useNavigation();
   const [isGradeInfoOpen, setGradeInfoOpen] = useState(false);
-
-  const handleGoToVerification = () => {
-    changeTab("verification");
-  };
 
   return (
     <section className="screen-section home">
