@@ -19,7 +19,7 @@ const TAB_COMPONENTS = {
 const MainLayout = () => {
   const { activeTab, changeTab } = useNavigation();
   const ActiveComponent = TAB_COMPONENTS[activeTab] || HomePage;
-  const { user, fact, actions } = useAppData();
+  const { user, actions } = useAppData();
 
   return (
     <div className="mobile-shell main">

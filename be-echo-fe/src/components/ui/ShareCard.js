@@ -59,7 +59,7 @@ const ShareCard = ({ user, insights, achievements }) => {
       <div className="share-card-content-wrapper">
         <div className="share-card-header">
           <div className="share-card-logo">
-            <span className="share-card-logo-text">beECHO</span>
+            <span className="share-card-logo-text">BeEcho.</span>
           </div>
           <div className="share-card-subtitle">
             {user?.name ?? "user"}님의 텀블러 사용 리포트
@@ -119,7 +119,7 @@ const ShareCard = ({ user, insights, achievements }) => {
         </div>
 
         <div className="share-card-footer">
-          <div className="share-card-watermark">beEcho.app</div>
+          <div className="share-card-watermark">BeEcho.</div>
         </div>
       </div>
     </div>

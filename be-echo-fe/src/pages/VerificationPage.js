@@ -48,6 +48,7 @@ const VerificationPage = () => {
   const [isCertInfoOpen, setCertInfoOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [successImageDataUrl, setSuccessImageDataUrl] = useState(null);
+  const [verificationError, setVerificationError] = useState(null);
 
   // 최근 성공 인증 내역 (최대 6개)
   const recentSuccessHistory = useMemo(() => {
@@ -86,19 +87,25 @@ const VerificationPage = () => {
         );
         setPendingImage(null);
         pendingImageRef.current = null;
+        setIsShareModalOpen(false);
+        setVerificationError(null);
       } else if (result?.success) {
         setOverrideMessage(null);
+        setVerificationError(null);
         if (imageToSave) {
           setSuccessImageDataUrl(imageToSave);
-          setIsShareModalOpen(true);
+          // 팝업은 이미 열려있으므로 상태만 업데이트
         } else {
           setPendingImage(null);
           pendingImageRef.current = null;
+          setIsShareModalOpen(false);
         }
       } else {
+        // 인증 실패 (일회용 컵 또는 객체 감지 실패)
         setOverrideMessage(null);
-        setPendingImage(null);
-        pendingImageRef.current = null;
+        setVerificationError(result?.message || "인증에 실패했어요.");
+        setSuccessImageDataUrl(null);
+        // 팝업은 열어두고 실패 메시지 표시
       }
     },
     [actions]
@@ -106,16 +113,19 @@ const VerificationPage = () => {
 
   const handleVerificationError = useCallback(
     (error) => {
-      if (pendingImage) {
+      const errorMessage = error?.message ?? "인증에 실패했어요.";
+      if (pendingImageRef.current) {
         actions.logVerification({
           success: false,
-          message: error?.message ?? "인증에 실패했어요.",
-          imageDataUrl: pendingImage,
+          message: errorMessage,
+          imageDataUrl: pendingImageRef.current,
         });
       }
-      setPendingImage(null);
+      setVerificationError(errorMessage);
+      setSuccessImageDataUrl(null);
+      // 팝업은 열어두고 실패 메시지 표시
     },
-    [actions, pendingImage]
+    [actions]
   );
 
   const { status, message, verifyImage, reset } = useTumblerVerification({
@@ -138,6 +148,7 @@ const VerificationPage = () => {
     }
 
     setOverrideMessage(null);
+    setVerificationError(null);
     reset();
     fileInputRef.current?.click();
   };
@@ -149,6 +160,8 @@ const VerificationPage = () => {
         const dataUrl = await readFileAsDataUrl(file);
         setPendingImage(dataUrl);
         pendingImageRef.current = dataUrl;
+        // 사진을 찍는 순간 팝업 표시
+        setIsShareModalOpen(true);
       } catch (readError) {
         console.warn("이미지를 불러오는 중 문제가 발생했어요.", readError);
         setPendingImage(null);
@@ -205,28 +218,11 @@ const VerificationPage = () => {
             className="verification-action-button"
             type="button"
             onClick={handleUploadRequest}
-            disabled={
-              status === "loading" || (!home.canVerify && !pendingImage)
-            }
+            disabled={status === "loading" || !home.canVerify}
           >
             <CameraIcon />
             {status === "loading" ? "인증 중..." : "텀블러 인증하기"}
           </button>
-          {pendingImage && (
-            <div className="verification-preview">
-              <img
-                src={pendingImage}
-                alt="인증 대기 중인 이미지"
-                className="verification-preview-image"
-              />
-              {status === "loading" && (
-                <div className="verification-preview-overlay">
-                  <div className="verification-loading-spinner"></div>
-                  <p>인증 처리 중...</p>
-                </div>
-              )}
-            </div>
-          )}
           <input
             ref={fileInputRef}
             type="file"
@@ -278,38 +274,91 @@ const VerificationPage = () => {
         )}
       </section>
 
-      {/* 인증 완료 팝업 */}
-      {isShareModalOpen && successImageDataUrl && (
+      {/* 인증 처리 팝업 */}
+      {isShareModalOpen && pendingImage && (
         <div
           className="verification-success-modal"
           role="dialog"
           aria-modal="true"
         >
           <div className="verification-success-modal-content">
-            <div className="verification-success-modal-header">
-              <h3>인증 성공! 🎉</h3>
-              <button
-                type="button"
-                className="verification-success-modal-close"
-                onClick={() => {
-                  setIsShareModalOpen(false);
-                  setSuccessImageDataUrl(null);
-                  setPendingImage(null);
-                  pendingImageRef.current = null;
-                }}
-              >
-                ✕
-              </button>
-            </div>
-            <div className="verification-success-modal-body">
-              <div className="verification-success-image-wrapper">
-                <img
-                  src={successImageDataUrl}
-                  alt="인증 완료 사진"
-                  className="verification-success-image"
-                />
-              </div>
-            </div>
+            {status === "loading" ? (
+              <>
+                <div className="verification-success-modal-header">
+                  <h3>인증 처리 중...</h3>
+                </div>
+                <div className="verification-success-modal-body">
+                  <div className="verification-success-image-wrapper">
+                    <img
+                      src={pendingImage}
+                      alt="인증 처리 중인 이미지"
+                      className="verification-success-image"
+                    />
+                    <div className="verification-loading-overlay">
+                      <div className="verification-loading-spinner"></div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : verificationError ? (
+              <>
+                <div className="verification-success-modal-header">
+                  <h3>인증 실패</h3>
+                  <button
+                    type="button"
+                    className="verification-success-modal-close"
+                    onClick={() => {
+                      setIsShareModalOpen(false);
+                      setVerificationError(null);
+                      setPendingImage(null);
+                      pendingImageRef.current = null;
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="verification-success-modal-body">
+                  <div className="verification-success-image-wrapper">
+                    <img
+                      src={pendingImage}
+                      alt="인증 실패 사진"
+                      className="verification-success-image"
+                    />
+                  </div>
+                  <p className="verification-error-message">
+                    {verificationError}
+                  </p>
+                </div>
+              </>
+            ) : successImageDataUrl ? (
+              <>
+                <div className="verification-success-modal-header">
+                  <h3>인증 완료! 🎉</h3>
+                  <button
+                    type="button"
+                    className="verification-success-modal-close"
+                    onClick={() => {
+                      setIsShareModalOpen(false);
+                      setSuccessImageDataUrl(null);
+                      setPendingImage(null);
+                      pendingImageRef.current = null;
+                      setVerificationError(null);
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="verification-success-modal-body">
+                  <div className="verification-success-image-wrapper">
+                    <img
+                      src={successImageDataUrl}
+                      alt="인증 완료 사진"
+                      className="verification-success-image"
+                    />
+                  </div>
+                </div>
+              </>
+            ) : null}
           </div>
         </div>
       )}
