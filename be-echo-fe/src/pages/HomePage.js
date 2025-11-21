@@ -44,14 +44,6 @@ const HomePage = () => {
             <h3>오늘의 인증</h3>
             <p>{home.certificationMessage}</p>
           </div>
-          <button
-            className="verification-cta-button"
-            type="button"
-            onClick={handleGoToVerification}
-          >
-            <CameraIcon />
-            인증하러가기
-          </button>
         </div>
       </article>
 
