@@ -120,12 +120,12 @@
 }
 
 .share-button-primary {
-  background: #4d94ff;
+  background: #05c46bbc;
   color: white;
 }
 
 .share-button-primary:hover {
-    background: #2379fb;
+    background: #05c46b;
     color: white;
   }
 
