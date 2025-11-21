@@ -15,7 +15,14 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+}
+
+.app-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .brand-copy {
@@ -28,6 +35,10 @@
   font-size: 18px;
   font-weight: 700;
   color: var(--text);
+}
+
+.brand-name-accent {
+  color: #05c46b;
 }
 
 .brand-subtitle {
@@ -163,7 +174,7 @@
   padding: 12px 18px calc(18px + env(safe-area-inset-bottom));
   border-top: 1px solid rgba(9, 19, 31, 0.06);
   gap: 10px;
-  box-shadow: 0 -12px 30px rgba(9, 19, 31, 0.08);
+  box-shadow: 0 -12px 15px rgba(9, 19, 31, 0.02);
 }
 
 .bottom-nav button {
