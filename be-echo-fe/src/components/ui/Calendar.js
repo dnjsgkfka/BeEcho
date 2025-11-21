@@ -95,7 +95,7 @@ const Calendar = ({ verifiedDates = [] }) => {
               } ${todayClass}`}
             >
               <span className="calendar-day-number">{day}</span>
-              {verified && <span className="calendar-day-badge">✓</span>}
+              {verified && <span className="calendar-day-badge" aria-label="인증 완료" />}
             </div>
           );
         })}
