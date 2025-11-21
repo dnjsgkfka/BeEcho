@@ -34,19 +34,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 12px;
 }
 
 .share-card-logo-icon {
-  font-size: 35px;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .share-card-logo-text {
   font-size: 32px;
   font-weight: 900;
-  color: #0b6bff;
+  letter-spacing: -0.5px;
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.share-card-logo-be {
+  color: #09131f;
+}
+
+.share-card-logo-echo {
+  color: #05c46b;
 }
 
 .share-card-subtitle {
@@ -71,10 +83,9 @@
   align-items: center;
   justify-content: center;
   padding: 20px 24px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  background: none;
   border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  border: none;
   flex-shrink: 0;
 }
 
@@ -139,7 +150,7 @@
   font-size: 32px;
   font-weight: 900;
   line-height: 1;
-  color: #0b6bff;
+  color: #05c46b;
 }
 
 .share-card-lp-unit {
@@ -158,10 +169,8 @@
 .share-card-stat {
   text-align: center;
   padding: 20px 16px;
-  background: #f8f9fa;
+  background: #05c46b16;
   border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -195,16 +204,25 @@
   margin-top: auto;
   text-align: center;
   padding-top: 16px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: none;
   flex-shrink: 0;
 }
 
 .share-card-watermark {
   font-size: 11px;
-  color: #9ca3af;
   font-weight: 600;
   letter-spacing: 1.5px;
   margin-top: 0;
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.share-card-watermark-be {
+  color: #6b7280;
+}
+
+.share-card-watermark-echo {
+  color: #05c46b;
 }
 
 /* 등급별 색상 */
@@ -249,13 +267,20 @@
     margin-bottom: 20px;
   }
 
+  .share-card-logo {
+    gap: 8px;
+  }
+
   .share-card-logo-icon {
-    font-size: 28px;
+    width: 32px;
+    height: 32px;
   }
 
   .share-card-logo-text {
-    font-size: 22px;
-    letter-spacing: 1.5px;
+    font-size: 26px;
+    letter-spacing: -0.3px;
+    display: inline-flex;
+    align-items: baseline;
   }
 
   .share-card-emoji {

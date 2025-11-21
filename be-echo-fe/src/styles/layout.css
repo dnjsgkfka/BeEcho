@@ -27,8 +27,7 @@
 
 .brand-copy {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
 }
 
 .brand-name {
@@ -39,11 +38,6 @@
 
 .brand-name-accent {
   color: #05c46b;
-}
-
-.brand-subtitle {
-  font-size: 12px;
-  color: var(--muted);
 }
 
 .header-actions {
@@ -125,21 +119,6 @@
 .header-settings-form button.danger {
   background: rgba(255, 99, 71, 0.12);
   color: #ff5c5c;
-}
-
-.header-fact {
-  background: #f1f8ff;
-  border-radius: 16px;
-  padding: 14px 18px;
-  line-height: 1.5;
-  color: var(--text);
-}
-
-.header-fact strong {
-  display: block;
-  font-size: 13px;
-  color: #0b6bff;
-  margin-bottom: 4px;
 }
 
 .icon-button {

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { IconButton, Logo } from "../ui";
+import { IconButton } from "../ui";
 import { SettingsIcon, RotateIcon } from "../icons";
+import { ReactComponent as LogoIcon } from "../icons/LogoIcon.svg";
 
-const AppHeader = ({ userName, lp, streak, fact, onReset, onUpdateName }) => {
+const AppHeader = ({ userName, lp, streak, onReset, onUpdateName }) => {
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [nameInput, setNameInput] = useState(userName || "");
 
@@ -30,13 +31,12 @@ const AppHeader = ({ userName, lp, streak, fact, onReset, onUpdateName }) => {
     <header className="app-header">
       <div className="header-top">
         <div className="brand">
-          <Logo size={28} />
+          <div className="app-logo">
+            <LogoIcon width={28} height={28} />
+          </div>
           <div className="brand-copy">
             <span className="brand-name">
               Be<span className="brand-name-accent">Echo</span>.
-            </span>
-            <span className="brand-subtitle">
-              {/* TODO: 브랜드 서브타이틀 */}
             </span>
           </div>
         </div>

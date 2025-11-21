@@ -78,11 +78,11 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #e1f0ff;
+  background: #05c46b2a;
+  color: #05c46b;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #0b6bff;
   font-size: 14px;
   font-weight: 700;
   z-index: 2;
@@ -232,11 +232,11 @@
 
 .share-button {
   padding: 10px 20px;
-  background: #e1f0ff;
   border-radius: 16px;
-  padding: 14px 18px;
+  padding: 10px 18px;
   line-height: 1.5;
-  color: #0b6bff;
+  background: #05c46b1a;
+  color: #039a53;
   border: none;
   font-size: 14px;
   font-weight: 600;
@@ -246,7 +246,7 @@
 }
 
 .share-button:hover {
-  background: #d4eaff;
+  background: #05c46b59;
 }
 
 .share-button:active {

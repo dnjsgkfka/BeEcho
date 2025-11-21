@@ -1,5 +1,6 @@
 import React from "react";
 import { deriveGradeCode, deriveGradeName } from "../../utils/grade";
+import { ReactComponent as LogoIcon } from "../icons/LogoIcon.svg";
 import "../../styles/share-card.css";
 
 const ShareCard = ({ user, insights, achievements }) => {
@@ -59,7 +60,11 @@ const ShareCard = ({ user, insights, achievements }) => {
       <div className="share-card-content-wrapper">
         <div className="share-card-header">
           <div className="share-card-logo">
-            <span className="share-card-logo-text">beECHO</span>
+            <LogoIcon className="share-card-logo-icon" width={40} height={40} />
+            <span className="share-card-logo-text">
+              <span className="share-card-logo-be">Be</span>
+              <span className="share-card-logo-echo">Echo</span>.
+            </span>
           </div>
           <div className="share-card-subtitle">
             {user?.name ?? "user"}님의 텀블러 사용 리포트
@@ -119,7 +124,10 @@ const ShareCard = ({ user, insights, achievements }) => {
         </div>
 
         <div className="share-card-footer">
-          <div className="share-card-watermark">beEcho.app</div>
+          <div className="share-card-watermark">
+            <span className="share-card-watermark-be">Be</span>
+            <span className="share-card-watermark-echo">Echo</span>.
+          </div>
         </div>
       </div>
     </div>
