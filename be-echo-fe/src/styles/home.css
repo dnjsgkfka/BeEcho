@@ -8,14 +8,9 @@
   margin-bottom: 18px;
 }
 
-.status-label {
-  font-size: 14px;
-  opacity: 0.8;
-}
-
 .status-card h3 {
-  margin: 8px 0 0;
-  font-size: 28px;
+  margin: 8px 0 5px;
+  font-size: 24px;
   font-weight: 700;
 }
 
@@ -37,44 +32,6 @@
   height: 100%;
   background: #fff;
   border-radius: inherit;
-}
-
-/* 인증하러가기 카드 */
-.verification-cta-card {
-  background: linear-gradient(135deg, #fff7ef, #ffe8d6);
-  border-radius: var(--radius-lg);
-  padding: 20px 24px;
-  margin-bottom: 20px;
-  border: none;
-}
-
-.verification-cta-content {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-@media (min-width: 520px) {
-  .verification-cta-content {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-}
-
-.verification-cta-text h3 {
-  margin: 0 0 6px 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.verification-cta-text p {
-  margin: 0;
-  font-size: 13px;
-  color: #ff7f50;
-  line-height: 1.5;
 }
 
 .stat-grid {
