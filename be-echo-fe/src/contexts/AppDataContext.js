@@ -62,7 +62,10 @@ const formatDateKey = (value) => {
   if (!date || Number.isNaN(date.getTime())) {
     return null;
   }
-  return date.toISOString().split("T")[0];
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
 const differenceInDays = (dateA, dateB) => {
@@ -585,6 +588,8 @@ export const AppDataProvider = ({ children }) => {
     };
   });
 
+  const [dateCheckKey, setDateCheckKey] = useState(formatDateKey(new Date()));
+
   useEffect(() => {
     saveState(state);
   }, [state]);
@@ -596,7 +601,26 @@ export const AppDataProvider = ({ children }) => {
       ...prev,
       fact: { id: nextId, updatedAt: Date.now() },
     }));
-  }, []); // 빈 배열로 마운트 시에만 실행
+  }, []);
+
+  useEffect(() => {
+    let lastCheckedDate = formatDateKey(new Date());
+
+    const checkDateChange = () => {
+      const currentDate = formatDateKey(new Date());
+
+      if (currentDate && currentDate !== lastCheckedDate) {
+        lastCheckedDate = currentDate;
+        setDateCheckKey(currentDate);
+      }
+    };
+
+    checkDateChange();
+
+    const intervalId = setInterval(checkDateChange, 60000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   const logVerification = useCallback((payload) => {
     let meta = { accepted: false };
@@ -644,7 +668,7 @@ export const AppDataProvider = ({ children }) => {
       },
       isLoading: false,
     };
-  }, [state, logVerification, resetState, updateProfile]);
+  }, [state, dateCheckKey, logVerification, resetState, updateProfile]);
 
   return (
     <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>
