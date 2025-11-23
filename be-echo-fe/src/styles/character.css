@@ -1,6 +1,6 @@
 .character-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   gap: 16px;
   padding: 0;
@@ -17,40 +17,40 @@
 }
 
 .character-emoji {
-  font-size: 80px;
+  font-size: 60px;
   line-height: 1;
   transition: transform 0.3s ease;
   animation: float 3s ease-in-out infinite;
 }
 
 .character-emoji.stage-bronze {
-  font-size: 70px;
+  font-size: 50px;
 }
 
 .character-emoji.stage-silver {
-  font-size: 80px;
+  font-size: 60px;
 }
 
 .character-emoji.stage-gold {
-  font-size: 90px;
+  font-size: 70px;
 }
 
 .character-emoji.stage-platinum {
-  font-size: 100px;
+  font-size: 80px;
 }
 
 .character-emoji.stage-diamond {
-  font-size: 110px;
+  font-size: 90px;
 }
 
 .character-emoji.stage-master {
-  font-size: 120px;
+  font-size: 100px;
 }
 
 .character-streak-badge {
   position: absolute;
-  top: 18px;
-  left: 20px;
+  top: -8px;
+  right: -8px;
   background: #67bd92;
   color: #fff;
   padding: 4px 10px;
@@ -58,25 +58,27 @@
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
+  z-index: 1;
 }
 
 .character-info {
-  text-align: center;
-  width: 100%;
+  text-align: left;
+  flex: 1;
+  min-width: 0;
 }
 
 .character-name {
-  margin: 0 0 8px;
-  font-size: 20px;
+  margin: 0 0 4px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text);
 }
 
 .character-description {
-  margin: 0 0 16px;
-  font-size: 14px;
+  margin: 0 0 12px;
+  font-size: 12px;
   color: var(--muted);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .character-progress {
@@ -107,14 +109,43 @@
 
 @media (max-width: 420px) {
   .character-container {
-    padding: 20px;
+    flex-direction: row;
+    gap: 12px;
   }
 
   .character-emoji {
-    font-size: 70px;
+    font-size: 48px !important;
+  }
+
+  .character-emoji.stage-bronze {
+    font-size: 42px !important;
+  }
+
+  .character-emoji.stage-silver {
+    font-size: 48px !important;
+  }
+
+  .character-emoji.stage-gold {
+    font-size: 56px !important;
+  }
+
+  .character-emoji.stage-platinum {
+    font-size: 64px !important;
+  }
+
+  .character-emoji.stage-diamond {
+    font-size: 72px !important;
+  }
+
+  .character-emoji.stage-master {
+    font-size: 80px !important;
   }
 
   .character-name {
-    font-size: 18px;
+    font-size: 14px;
+  }
+
+  .character-description {
+    font-size: 11px;
   }
 }
