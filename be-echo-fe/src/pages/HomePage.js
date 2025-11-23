@@ -31,16 +31,6 @@ const HomePage = () => {
         <Character lp={user.lp} streakDays={user.streakDays} />
       </article>
 
-      {/* 인증하러가기 */}
-      <article className="verification-cta-card">
-        <div className="verification-cta-content">
-          <div className="verification-cta-text">
-            <h3>오늘의 인증</h3>
-            <p>{home.certificationMessage}</p>
-          </div>
-        </div>
-      </article>
-
       <div className="stat-grid">
         {home.stats.map((stat) => (
           <StatPill
@@ -94,10 +84,10 @@ const HomePage = () => {
       )}
 
       {/* 하단 fact */}
-      {fact?.description && (
+      {fact && (
         <div className="page-bottom-fact">
           <strong>{fact.title || "오늘의 환경 정보"}</strong>
-          <p>{fact.description}</p>
+          <p>{fact.description || "텀블러 인증으로 지구를 지켜요."}</p>
         </div>
       )}
     </section>

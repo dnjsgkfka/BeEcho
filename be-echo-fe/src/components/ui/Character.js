@@ -59,9 +59,6 @@ const Character = ({ lp = 0, streakDays = 0 }) => {
 
   return (
     <div className="character-container">
-      {streakDays > 0 && (
-        <div className="character-streak-badge">{streakDays}일 연속</div>
-      )}
       <div className="character-display">
         <div className={`character-emoji stage-${characterStage}`}>
           {currentInfo.emoji}
