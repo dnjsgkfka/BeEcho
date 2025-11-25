@@ -1,0 +1,15 @@
+.ranking-content {
+  padding: 20px 0;
+}
+
+.ranking-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+
+.ranking-empty-state p {
+  margin: 0;
+  font-size: 14px;
+}
+

@@ -9,11 +9,11 @@ const AchievementsPage = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   return (
-    <section className="screen-section achievements">
-      <div className="page-heading">
+    <div className="achievements-page">
+      <div className="achievements-content">
         <div className="page-heading-row">
           <div>
-            <h2>업적</h2>
+            <h3>업적</h3>
             <p className="page-subtitle">{achievements.progress}</p>
           </div>
           <button
@@ -23,28 +23,28 @@ const AchievementsPage = () => {
             지금까지의 환경 보호 활동을 공유해보세요!
           </button>
         </div>
-      </div>
-      <div className="achievement-grid">
-        {achievements.all.map((achievement) => (
-          <AchievementCard
-            key={achievement.id}
-            title={achievement.title}
-            description={achievement.description}
-            variant={achievement.variant}
-            unlocked={achievement.unlocked}
-            emoji={achievement.emoji}
-          />
-        ))}
-      </div>
+        <div className="achievement-grid">
+          {achievements.all.map((achievement) => (
+            <AchievementCard
+              key={achievement.id}
+              title={achievement.title}
+              description={achievement.description}
+              variant={achievement.variant}
+              unlocked={achievement.unlocked}
+              emoji={achievement.emoji}
+            />
+          ))}
+        </div>
 
-      <ShareModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        user={user}
-        insights={insights}
-        achievements={achievements}
-      />
-    </section>
+        <ShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          user={user}
+          insights={insights}
+          achievements={achievements}
+        />
+      </div>
+    </div>
   );
 };
 

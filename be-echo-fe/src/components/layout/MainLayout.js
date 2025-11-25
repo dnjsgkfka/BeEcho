@@ -4,16 +4,16 @@ import AppHeader from "./AppHeader";
 import BottomNavigation from "./BottomNavigation";
 import HomePage from "../../pages/HomePage";
 import VerificationPage from "../../pages/VerificationPage";
-import InsightsPage from "../../pages/InsightsPage";
-import AchievementsPage from "../../pages/AchievementsPage";
+import CommunityPage from "../../pages/CommunityPage";
+import StatsPage from "../../pages/StatsPage";
 import { useAppData } from "../../contexts/AppDataContext";
 import { useNavigation } from "../../contexts/NavigationContext";
 
 const TAB_COMPONENTS = {
   home: HomePage,
   verification: VerificationPage,
-  insights: InsightsPage,
-  achievements: AchievementsPage,
+  community: CommunityPage,
+  stats: StatsPage,
 };
 
 const MainLayout = () => {

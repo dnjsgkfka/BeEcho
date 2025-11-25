@@ -1,0 +1,15 @@
+.group-content {
+  padding: 20px 0;
+}
+
+.group-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+
+.group-empty-state p {
+  margin: 0;
+  font-size: 14px;
+}
+
