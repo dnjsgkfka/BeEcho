@@ -7,7 +7,6 @@ export const TAB_ITEMS = [
 
 export const DEFAULT_TAB = TAB_ITEMS[0].id;
 
-// 서브탭 정의
 export const COMMUNITY_SUBTABS = [
   { id: "group", label: "그룹" },
   { id: "ranking", label: "랭킹" },
