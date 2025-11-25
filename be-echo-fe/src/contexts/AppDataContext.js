@@ -10,6 +10,7 @@ import createDefaultState from "../data/defaultState";
 import footprintFacts from "../data/footprintFacts";
 import { loadState, saveState, clearState } from "../services/storage";
 import { deriveGradeName } from "../utils/grade";
+import { useAuth } from "./AuthContext";
 
 const MAX_HISTORY_ENTRIES = 365;
 const INSIGHT_WEEKS = 4;
@@ -558,6 +559,8 @@ const applyVerificationResult = (state, payload) => {
   /* 앱 데이터 제공 */
 }
 export const AppDataProvider = ({ children }) => {
+  const { user: authUser } = useAuth();
+
   const [state, setState] = useState(() => {
     const stored = loadState();
     if (!stored) {
@@ -566,7 +569,6 @@ export const AppDataProvider = ({ children }) => {
 
     const history = Array.isArray(stored.history) ? stored.history : [];
 
-    // totalSuccessCount가 없으면 history에서 계산하여 동기화
     const calculatedTotalSuccess = history.filter(
       (entry) => entry.success
     ).length;
@@ -578,7 +580,6 @@ export const AppDataProvider = ({ children }) => {
       user: {
         ...createDefaultState().user,
         ...(stored.user || {}),
-        // totalSuccessCount가 없거나 0이면 history에서 계산한 값 사용
         totalSuccessCount:
           userTotalSuccessCount !== undefined && userTotalSuccessCount !== null
             ? Math.max(userTotalSuccessCount, calculatedTotalSuccess) // 둘 중 큰 값 사용 (안전장치)
@@ -587,6 +588,43 @@ export const AppDataProvider = ({ children }) => {
       history,
     };
   });
+
+  useEffect(() => {
+    if (authUser) {
+      setState((prev) => ({
+        ...prev,
+        user: {
+          ...prev.user,
+          id: authUser.id,
+          name: authUser.name || prev.user.name || "사용자",
+          username:
+            authUser.username ||
+            authUser.name ||
+            prev.user.username ||
+            prev.user.name ||
+            "사용자",
+          email: authUser.email || prev.user.email,
+          photoURL: authUser.photoURL || prev.user.photoURL,
+          lp: authUser.lp !== undefined ? authUser.lp : prev.user.lp,
+          streakDays:
+            authUser.streakDays !== undefined
+              ? authUser.streakDays
+              : prev.user.streakDays,
+          bestStreak:
+            authUser.bestStreak !== undefined
+              ? authUser.bestStreak
+              : prev.user.bestStreak,
+          totalSuccessCount:
+            authUser.totalSuccessCount !== undefined
+              ? authUser.totalSuccessCount
+              : prev.user.totalSuccessCount,
+          lastSuccessDate:
+            authUser.lastSuccessDate || prev.user.lastSuccessDate,
+          groupId: authUser.groupId || prev.user.groupId,
+        },
+      }));
+    }
+  }, [authUser]);
 
   const [dateCheckKey, setDateCheckKey] = useState(formatDateKey(new Date()));
 
