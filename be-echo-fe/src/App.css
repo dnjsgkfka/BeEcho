@@ -2,7 +2,8 @@
 
 :root {
   color-scheme: light;
-  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Pretendard Variable", Pretendard, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
   --bg: #eef3f8;
   --primary: #05c46b;
   --primary-dark: #009955;
@@ -50,7 +51,8 @@ body::-webkit-scrollbar {
 }
 
 body {
-  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Pretendard Variable", Pretendard, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 #root {

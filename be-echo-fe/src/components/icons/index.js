@@ -18,7 +18,9 @@ export const InfoIcon = () => <InfoIconSvg />;
 
 export const RotateIcon = () => <RotateIconSvg />;
 
-export const SettingsIcon = () => <SettingsIconSvg />;
+export const SettingsIcon = ({ active }) => (
+  <SettingsIconSvg className={active ? "active" : ""} />
+);
 
 export const LockIcon = () => <LockIconSvg />;
 
