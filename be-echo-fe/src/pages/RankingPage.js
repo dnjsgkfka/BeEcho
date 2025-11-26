@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../styles/ranking.css";
 import { useAppData } from "../contexts/AppDataContext";
 import { useAuth } from "../contexts/AuthContext";
+import { Skeleton, SkeletonCard } from "../components/ui";
 import {
   getPersonalRankings,
   getGroupRankings,
@@ -71,43 +72,51 @@ const RankingPage = () => {
       </div>
 
       {/* 내 순위 표시 */}
-      {myRank && (
+      {isLoading && !myRank ? (
         <div className="ranking-my-rank">
-          <div className="ranking-my-rank-header">
-            <span>{activeTab === "personal" ? "내 순위" : "내 그룹 순위"}</span>
-            <strong>#{myRank.rank}</strong>
-          </div>
-          <div className="ranking-my-rank-content">
-            <div className="ranking-item ranking-item-highlight">
-              {activeTab === "personal" && (
-                <div className="ranking-avatar">
-                  {myRank.photoURL ? (
-                    <img src={myRank.photoURL} alt={myRank.name} />
-                  ) : (
-                    <span>{myRank.name?.[0] || "?"}</span>
-                  )}
+          <SkeletonCard />
+        </div>
+      ) : (
+        myRank && (
+          <div className="ranking-my-rank">
+            <div className="ranking-my-rank-header">
+              <span>
+                {activeTab === "personal" ? "내 순위" : "내 그룹 순위"}
+              </span>
+              <strong>#{myRank.rank}</strong>
+            </div>
+            <div className="ranking-my-rank-content">
+              <div className="ranking-item ranking-item-highlight">
+                {activeTab === "personal" && (
+                  <div className="ranking-avatar">
+                    {myRank.photoURL ? (
+                      <img src={myRank.photoURL} alt={myRank.name} />
+                    ) : (
+                      <span>{myRank.name?.[0] || "?"}</span>
+                    )}
+                  </div>
+                )}
+                <div className="ranking-info">
+                  <div className="ranking-name">
+                    {myRank.name || "이름 없음"}
+                    <span className="ranking-badge">나</span>
+                  </div>
+                  <div className="ranking-meta">
+                    {activeTab === "personal"
+                      ? `${myRank.streakDays || 0}일 연속`
+                      : myRank.name || "그룹 이름"}
+                  </div>
                 </div>
-              )}
-              <div className="ranking-info">
-                <div className="ranking-name">
-                  {myRank.name || "이름 없음"}
-                  <span className="ranking-badge">나</span>
-                </div>
-                <div className="ranking-meta">
+                <div className="ranking-lp">
                   {activeTab === "personal"
-                    ? `${myRank.streakDays || 0}일 연속`
-                    : myRank.name || "그룹 이름"}
+                    ? myRank.lp || 0
+                    : myRank.totalLP || 0}{" "}
+                  LP
                 </div>
-              </div>
-              <div className="ranking-lp">
-                {activeTab === "personal"
-                  ? myRank.lp || 0
-                  : myRank.totalLP || 0}{" "}
-                LP
               </div>
             </div>
           </div>
-        </div>
+        )
       )}
 
       {/* 랭킹 리스트 */}
@@ -117,9 +126,22 @@ const RankingPage = () => {
           <span className="ranking-list-count">{rankings.length}명</span>
         </div>
 
-        {isLoading ? (
-          <div className="ranking-empty">
-            <p>랭킹을 불러오는 중...</p>
+        {isLoading && rankings.length === 0 ? (
+          <div className="ranking-items">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="ranking-item">
+                <Skeleton width="40px" height="40px" borderRadius="50%" />
+                <div style={{ flex: 1 }}>
+                  <Skeleton width="60%" height="16px" />
+                  <Skeleton
+                    width="40%"
+                    height="14px"
+                    style={{ marginTop: "8px" }}
+                  />
+                </div>
+                <Skeleton width="60px" height="20px" />
+              </div>
+            ))}
           </div>
         ) : rankings.length > 0 ? (
           <div className="ranking-items">
