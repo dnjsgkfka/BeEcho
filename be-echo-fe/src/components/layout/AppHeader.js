@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { IconButton } from "../ui";
-import { SettingsIcon, RotateIcon } from "../icons";
+import { SettingsIcon } from "../icons";
 import { ReactComponent as LogoIcon } from "../icons/LogoIcon.svg";
 import { useAuth } from "../../contexts/AuthContext";
 
-const AppHeader = ({ userName, lp, streak, onReset, onUpdateName }) => {
+const AppHeader = ({ userName, lp, streak, onUpdateName }) => {
   const { logout, deleteAccount } = useAuth();
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [nameInput, setNameInput] = useState(userName || "");
@@ -19,14 +19,19 @@ const AppHeader = ({ userName, lp, streak, onReset, onUpdateName }) => {
     setSettingsOpen((prev) => !prev);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const nextName = nameInput.trim();
     if (!nextName) {
       return;
     }
-    onUpdateName?.({ name: nextName });
-    setSettingsOpen(false);
+    try {
+      await onUpdateName?.({ name: nextName });
+      setSettingsOpen(false);
+    } catch (error) {
+      console.error("이름 수정 오류:", error);
+      alert("이름 수정 중 오류가 발생했습니다. 다시 시도해주세요.");
+    }
   };
 
   return (
@@ -49,21 +54,6 @@ const AppHeader = ({ userName, lp, streak, onReset, onUpdateName }) => {
               {lp ?? 0} LP · {streak ?? 0}일
             </span>
           </div>
-          <IconButton
-            label="초기화"
-            onClick={() => {
-              if (
-                onReset &&
-                window.confirm(
-                  "데이터 초기화 버튼 클릭 시 데이터가 초기화됩니다. 정말 초기화하시겠습니까?"
-                )
-              ) {
-                onReset();
-              }
-            }}
-          >
-            <RotateIcon />
-          </IconButton>
           <IconButton label="설정" onClick={toggleSettings}>
             <SettingsIcon />
           </IconButton>
@@ -90,24 +80,6 @@ const AppHeader = ({ userName, lp, streak, onReset, onUpdateName }) => {
                 저장
               </button>
             </div>
-            {onReset && (
-              <button
-                type="button"
-                className="danger"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      "데이터 초기화 버튼 클릭 시 데이터가 초기화됩니다. 정말 초기화하시겠습니까?"
-                    )
-                  ) {
-                    onReset();
-                    setSettingsOpen(false);
-                  }
-                }}
-              >
-                모든 데이터 초기화
-              </button>
-            )}
             <button
               type="button"
               className="danger"
@@ -141,7 +113,6 @@ const AppHeader = ({ userName, lp, streak, onReset, onUpdateName }) => {
                     try {
                       await deleteAccount();
                       alert("회원탈퇴가 완료되었습니다.");
-                      window.location.href = "/";
                     } catch (error) {
                       console.error("회원탈퇴 오류:", error);
                       alert(

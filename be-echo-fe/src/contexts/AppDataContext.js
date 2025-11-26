@@ -4,13 +4,30 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import createDefaultState from "../data/defaultState";
 import footprintFacts from "../data/footprintFacts";
-import { loadState, saveState, clearState } from "../services/storage";
+import {
+  loadState,
+  saveState,
+  clearState,
+  clearAllStates,
+} from "../services/storage";
 import { deriveGradeName } from "../utils/grade";
 import { useAuth } from "./AuthContext";
+import {
+  doc,
+  updateDoc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  writeBatch,
+} from "firebase/firestore";
+import { db } from "../config/firebase";
 
 const MAX_HISTORY_ENTRIES = 365;
 const INSIGHT_WEEKS = 4;
@@ -39,7 +56,6 @@ const defaultContextValue = {
   },
   actions: {
     logVerification: () => {},
-    resetState: () => {},
     updateProfile: () => {},
   },
   isLoading: false,
@@ -94,15 +110,15 @@ const pickRandomFactId = (excludeId = null) => {
   /* 업적 계산 */
 }
 const recalculateAchievements = (user, history) => {
-  // user.totalSuccessCount를 우선 사용, 없으면 history에서 계산 (하위 호환성)
   const historySuccessCount = history.filter((entry) => entry.success).length;
   const successCount =
     user.totalSuccessCount !== undefined && user.totalSuccessCount !== null
-      ? Math.max(user.totalSuccessCount, historySuccessCount) // 둘 중 큰 값 사용 (안전장치)
+      ? Math.max(user.totalSuccessCount, historySuccessCount)
       : historySuccessCount;
   const streakDays = user.streakDays || 0;
   const bestStreak = user.bestStreak || 0;
   const lp = user.lp || 0;
+  const hasGroup = !!user.groupId;
 
   // 모든 업적 정의 (항상 표시)
   const allAchievements = [
@@ -116,14 +132,6 @@ const recalculateAchievements = (user, history) => {
       unlocked: successCount >= 1,
     },
     // 스트릭 업적
-    {
-      id: "streak3",
-      title: "3일 연속",
-      description: "3일 연속으로 인증하세요",
-      variant: "streak",
-      emoji: "🔥",
-      unlocked: bestStreak >= 3,
-    },
     {
       id: "streak7",
       title: "일주일 완주",
@@ -303,14 +311,61 @@ const recalculateAchievements = (user, history) => {
       emoji: "🌎",
       unlocked: successCount >= 100 && lp >= 500,
     },
+    // 그룹 관련 업적
+    {
+      id: "joinGroup",
+      title: "함께하기",
+      description: "그룹에 참여하세요",
+      variant: "orange",
+      emoji: "👥",
+      unlocked: hasGroup,
+    },
+    {
+      id: "createGroup",
+      title: "그룹 창립자",
+      description: "그룹을 생성하세요",
+      variant: "orange",
+      emoji: "🏛️",
+      unlocked: hasGroup && user.isGroupLeader === true,
+    },
+    {
+      id: "groupPerfectDay",
+      title: "완벽한 하루",
+      description: "그룹의 모든 멤버가 인증한 날",
+      variant: "purple",
+      emoji: "🎉",
+      unlocked: false,
+    },
+    {
+      id: "groupLP100",
+      title: "그룹 LP 100",
+      description: "그룹 총 LP가 100을 달성하세요",
+      variant: "orange",
+      emoji: "🌟",
+      unlocked: false,
+    },
+    {
+      id: "groupLP500",
+      title: "그룹 LP 500",
+      description: "그룹 총 LP가 500을 달성하세요",
+      variant: "orange",
+      emoji: "💫",
+      unlocked: false,
+    },
   ];
 
   const unlockedCount = allAchievements.filter((item) => item.unlocked).length;
 
+  const sortedAchievements = [...allAchievements].sort((a, b) => {
+    if (a.unlocked && !b.unlocked) return -1;
+    if (!a.unlocked && b.unlocked) return 1;
+    return 0;
+  });
+
   return {
     progress: `${unlockedCount} / ${allAchievements.length} 달성`,
-    all: allAchievements,
-    personal: allAchievements.filter((item) => item.unlocked),
+    all: sortedAchievements,
+    personal: sortedAchievements.filter((item) => item.unlocked),
     lockedSlots: 0,
   };
 };
@@ -560,34 +615,107 @@ const applyVerificationResult = (state, payload) => {
 }
 export const AppDataProvider = ({ children }) => {
   const { user: authUser } = useAuth();
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const prevUserIdRef = useRef(null);
 
   const [state, setState] = useState(() => {
-    const stored = loadState();
-    if (!stored) {
-      return createDefaultState();
-    }
-
-    const history = Array.isArray(stored.history) ? stored.history : [];
-
-    const calculatedTotalSuccess = history.filter(
-      (entry) => entry.success
-    ).length;
-    const userTotalSuccessCount = stored.user?.totalSuccessCount;
-
-    return {
-      ...createDefaultState(),
-      ...stored,
-      user: {
-        ...createDefaultState().user,
-        ...(stored.user || {}),
-        totalSuccessCount:
-          userTotalSuccessCount !== undefined && userTotalSuccessCount !== null
-            ? Math.max(userTotalSuccessCount, calculatedTotalSuccess) // 둘 중 큰 값 사용 (안전장치)
-            : calculatedTotalSuccess,
-      },
-      history,
-    };
+    return createDefaultState();
   });
+
+  useEffect(() => {
+    if (authUser?.id) {
+      const newUserId = authUser.id;
+
+      if (prevUserIdRef.current && prevUserIdRef.current !== newUserId) {
+        clearState(prevUserIdRef.current);
+      }
+
+      prevUserIdRef.current = newUserId;
+      setCurrentUserId(newUserId);
+
+      const stored = loadState(newUserId);
+      if (stored) {
+        const history = Array.isArray(stored.history) ? stored.history : [];
+
+        const calculatedTotalSuccess = history.filter(
+          (entry) => entry.success
+        ).length;
+        const userTotalSuccessCount = stored.user?.totalSuccessCount;
+
+        setState({
+          ...createDefaultState(),
+          ...stored,
+          user: {
+            ...createDefaultState().user,
+            ...(stored.user || {}),
+            id: authUser.id,
+            name: authUser.name || stored.user?.name || "사용자",
+            username:
+              authUser.username ||
+              authUser.name ||
+              stored.user?.username ||
+              stored.user?.name ||
+              "사용자",
+            email: authUser.email || stored.user?.email,
+            photoURL: authUser.photoURL || stored.user?.photoURL,
+            lp: authUser.lp !== undefined ? authUser.lp : stored.user?.lp || 0,
+            streakDays:
+              authUser.streakDays !== undefined
+                ? authUser.streakDays
+                : stored.user?.streakDays || 0,
+            bestStreak:
+              authUser.bestStreak !== undefined
+                ? authUser.bestStreak
+                : stored.user?.bestStreak || 0,
+            totalSuccessCount:
+              authUser.totalSuccessCount !== undefined
+                ? authUser.totalSuccessCount
+                : userTotalSuccessCount !== undefined &&
+                  userTotalSuccessCount !== null
+                ? Math.max(userTotalSuccessCount, calculatedTotalSuccess)
+                : calculatedTotalSuccess,
+            lastSuccessDate:
+              authUser.lastSuccessDate || stored.user?.lastSuccessDate,
+            groupId:
+              authUser.groupId !== undefined
+                ? authUser.groupId
+                : stored.user?.groupId || null,
+            isGroupLeader:
+              authUser.isGroupLeader !== undefined
+                ? authUser.isGroupLeader
+                : stored.user?.isGroupLeader || false,
+          },
+          history,
+        });
+      } else {
+        setState((prev) => ({
+          ...createDefaultState(),
+          user: {
+            ...createDefaultState().user,
+            id: authUser.id,
+            name: authUser.name || "사용자",
+            username: authUser.username || authUser.name || "사용자",
+            email: authUser.email,
+            photoURL: authUser.photoURL,
+            lp: authUser.lp || 0,
+            streakDays: authUser.streakDays || 0,
+            bestStreak: authUser.bestStreak || 0,
+            totalSuccessCount: authUser.totalSuccessCount || 0,
+            lastSuccessDate: authUser.lastSuccessDate,
+            groupId: authUser.groupId || null,
+            isGroupLeader: authUser.isGroupLeader || false,
+          },
+        }));
+      }
+    } else {
+      if (prevUserIdRef.current) {
+        clearState(prevUserIdRef.current);
+        prevUserIdRef.current = null;
+      }
+      setCurrentUserId(null);
+      setState(createDefaultState());
+    }
+  }, [authUser?.id]);
 
   useEffect(() => {
     if (authUser) {
@@ -620,7 +748,14 @@ export const AppDataProvider = ({ children }) => {
               : prev.user.totalSuccessCount,
           lastSuccessDate:
             authUser.lastSuccessDate || prev.user.lastSuccessDate,
-          groupId: authUser.groupId || prev.user.groupId,
+          groupId:
+            authUser.groupId !== undefined
+              ? authUser.groupId
+              : prev.user.groupId,
+          isGroupLeader:
+            authUser.isGroupLeader !== undefined
+              ? authUser.isGroupLeader === true
+              : prev.user.isGroupLeader || false,
         },
       }));
     }
@@ -629,8 +764,10 @@ export const AppDataProvider = ({ children }) => {
   const [dateCheckKey, setDateCheckKey] = useState(formatDateKey(new Date()));
 
   useEffect(() => {
-    saveState(state);
-  }, [state]);
+    if (currentUserId) {
+      saveState(state, currentUserId);
+    }
+  }, [state, currentUserId]);
 
   useEffect(() => {
     // 새로고침할 때마다 랜덤으로 fact 선택
@@ -670,27 +807,73 @@ export const AppDataProvider = ({ children }) => {
     return meta;
   }, []);
 
-  {
-    /* 앱 데이터 초기화 */
-  }
-  const resetState = useCallback(() => {
-    const next = createDefaultState();
-    setState(next);
-    clearState();
-  }, []);
+  const updateProfile = useCallback(
+    async (updates) => {
+      if (!authUser?.id) {
+        return;
+      }
 
-  {
-    /* 유저 정보 업데이트 */
-  }
-  const updateProfile = useCallback((updates) => {
-    setState((prev) => ({
-      ...prev,
-      user: {
-        ...prev.user,
-        ...updates,
-      },
-    }));
-  }, []);
+      try {
+        const userRef = doc(db, "users", authUser.id);
+        const updateData = {};
+
+        if (updates.name) {
+          updateData.name = updates.name;
+          updateData.username = updates.name;
+        }
+
+        if (Object.keys(updateData).length > 0) {
+          await updateDoc(userRef, updateData);
+
+          if (authUser.groupId && updates.name) {
+            const memberRef = doc(
+              db,
+              "groups",
+              authUser.groupId,
+              "members",
+              authUser.id
+            );
+            const memberDoc = await getDoc(memberRef);
+            if (memberDoc.exists()) {
+              await updateDoc(memberRef, { name: updates.name });
+            }
+          }
+
+          if (updates.name) {
+            const batch = writeBatch(db);
+            const verificationsRef = collection(db, "verifications");
+            const userVerificationsQuery = query(
+              verificationsRef,
+              where("userId", "==", authUser.id)
+            );
+            const verificationsSnapshot = await getDocs(userVerificationsQuery);
+
+            verificationsSnapshot.docs.forEach((verificationDoc) => {
+              batch.update(verificationDoc.ref, {
+                userName: updates.name,
+              });
+            });
+
+            if (verificationsSnapshot.docs.length > 0) {
+              await batch.commit();
+            }
+          }
+        }
+
+        setState((prev) => ({
+          ...prev,
+          user: {
+            ...prev.user,
+            ...updates,
+          },
+        }));
+      } catch (error) {
+        console.error("프로필 업데이트 오류:", error);
+        throw error;
+      }
+    },
+    [authUser]
+  );
 
   {
     /* 뷰 모델 생성 */
@@ -701,12 +884,11 @@ export const AppDataProvider = ({ children }) => {
       ...viewModel,
       actions: {
         logVerification,
-        resetState,
         updateProfile,
       },
       isLoading: false,
     };
-  }, [state, dateCheckKey, logVerification, resetState, updateProfile]);
+  }, [state, dateCheckKey, logVerification, updateProfile]);
 
   return (
     <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>
