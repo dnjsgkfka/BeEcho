@@ -7,38 +7,38 @@
   display: flex;
   gap: 8px;
   padding: 0 26px 20px;
-  border-bottom: 1px solid rgba(9, 19, 31, 0.08);
   margin-bottom: 20px;
 }
 
 .ranking-tab {
-  padding: 12px 24px;
+  flex: 1;
+  padding: 12px 20px;
   border: none;
-  background: transparent;
+  background: rgba(9, 19, 31, 0.04);
   color: var(--muted);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
+  border-radius: 12px;
   transition: all 0.2s ease;
 }
 
 .ranking-tab:hover {
+  background: rgba(9, 19, 31, 0.06);
   color: var(--text);
 }
 
 .ranking-tab.active {
-  color: #05c46b;
-  border-bottom-color: #05c46b;
+  background: #05c46b;
+  color: white;
 }
 
 /* 내 순위 */
 .ranking-my-rank {
-  margin: 0 26px 24px;
-  padding: 16px;
-  background: linear-gradient(135deg, #f5fff9, #ecfff5);
-  border: 2px solid rgba(5, 196, 107, 0.2);
+  margin: 0 26px 20px;
+  padding: 18px;
+  background: #ebfff5;
+  border: none;
   border-radius: 16px;
 }
 
@@ -49,16 +49,17 @@
   margin-bottom: 12px;
   font-size: 13px;
   color: var(--muted);
+  font-weight: 600;
 }
 
 .ranking-my-rank-header strong {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: #05c46b;
 }
 
 .ranking-my-rank-content {
-  margin-top: 8px;
+  margin-top: 0;
 }
 
 /* 랭킹 리스트 */
@@ -88,7 +89,7 @@
 .ranking-items {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .ranking-item {
@@ -97,45 +98,47 @@
   gap: 12px;
   padding: 14px;
   background: #fff;
-  border-radius: 16px;
-  border: 1px solid rgba(9, 19, 31, 0.08);
-  transition: all 0.2s ease;
-}
-
-.ranking-item:hover {
-  border-color: rgba(5, 196, 107, 0.2);
-  box-shadow: 0 2px 8px rgba(5, 196, 107, 0.1);
+  border-radius: 12px;
+  border: none;
 }
 
 .ranking-item-highlight {
-  background: linear-gradient(135deg, #f5fff9, #ecfff5);
-  border-color: rgba(5, 196, 107, 0.3);
+  background: #ebfff5;
+  border: none;
 }
 
 .ranking-item-me {
-  background: rgba(5, 196, 107, 0.05);
-  border-color: rgba(5, 196, 107, 0.2);
+  background: rgba(5, 196, 107, 0.06);
 }
 
 .ranking-rank {
-  width: 32px;
+  width: 36px;
   text-align: center;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ranking-rank.top-1,
+.ranking-rank.top-2,
+.ranking-rank.top-3 {
+  font-size: 20px;
 }
 
 .ranking-item-highlight .ranking-rank {
   color: #05c46b;
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .ranking-avatar {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #05c46b, #04a85a);
+  background: #05c46b;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -155,6 +158,7 @@
 .ranking-info {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .ranking-name {
@@ -165,20 +169,27 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ranking-badge {
   padding: 2px 8px;
   background: rgba(5, 196, 107, 0.15);
   color: #05c46b;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .ranking-meta {
   font-size: 12px;
   color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ranking-lp {
@@ -186,6 +197,7 @@
   font-weight: 700;
   color: #05c46b;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .ranking-empty {
@@ -197,24 +209,69 @@
 
 @media (max-width: 640px) {
   .ranking-tabs {
-    padding: 0 20px 16px;
+    padding: 0 0px 16px;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .ranking-tab {
+    padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 10px;
   }
 
   .ranking-my-rank {
-    margin: 0 20px 20px;
+    margin: 0 0px 16px;
     padding: 14px;
+    border-radius: 12px;
+  }
+
+  .ranking-my-rank-header {
+    margin-bottom: 10px;
+  }
+
+  .ranking-my-rank-header strong {
+    font-size: 18px;
   }
 
   .ranking-list {
-    padding: 0 20px 20px;
+    padding: 0 0px 20px;
+  }
+
+  .ranking-list-header {
+    margin-bottom: 12px;
+  }
+
+  .ranking-list-header h4 {
+    font-size: 16px;
+  }
+
+  .ranking-list-count {
+    font-size: 12px;
+  }
+
+  .ranking-items {
+    gap: 6px;
   }
 
   .ranking-item {
     padding: 12px;
+    gap: 10px;
+    border-radius: 10px;
   }
 
   .ranking-rank {
-    width: 28px;
+    width: 32px;
+    font-size: 14px;
+  }
+
+  .ranking-rank.top-1,
+  .ranking-rank.top-2,
+  .ranking-rank.top-3 {
+    font-size: 18px;
+  }
+
+  .ranking-item-highlight .ranking-rank {
     font-size: 16px;
   }
 
@@ -226,9 +283,14 @@
 
   .ranking-name {
     font-size: 14px;
+    margin-bottom: 3px;
+  }
+
+  .ranking-meta {
+    font-size: 11px;
   }
 
   .ranking-lp {
-    font-size: 15px;
+    font-size: 14px;
   }
 }

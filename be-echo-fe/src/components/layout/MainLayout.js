@@ -27,7 +27,9 @@ const MainLayout = () => {
         userName={user?.name}
         lp={user?.lp}
         streak={user?.streakDays}
+        photoURL={user?.photoURL}
         onUpdateName={actions.updateProfile}
+        onUpdatePhoto={actions.updateProfile}
       />
       <main className="screen">
         <ActiveComponent />

@@ -272,28 +272,24 @@ const GroupPage = () => {
             )}
 
             <div className="group-info-stats">
-              <div className="group-stat-item">
-                <span className="group-stat-label">멤버</span>
-                <span className="group-stat-value">
-                  {groupMembers.length || 1}명
-                </span>
+              <div className="stat-pill streak">
+                <p>멤버</p>
+                <strong>{groupMembers.length || 1}명</strong>
               </div>
-              <div className="group-stat-item">
-                <span className="group-stat-label">오늘 인증</span>
-                <span className="group-stat-value">
-                  {todayVerifications.length}명
-                </span>
+              <div className="stat-pill total">
+                <p>오늘 인증</p>
+                <strong>{todayVerifications.length}명</strong>
               </div>
               <div
-                className="group-stat-item"
+                className="stat-pill rank"
                 onClick={() => setIsLPInfoModalOpen(true)}
                 style={{ cursor: "pointer" }}
                 title="그룹 LP 정보"
               >
-                <span className="group-stat-label">그룹 LP</span>
-                <span className="group-stat-value">
+                <p>그룹 LP</p>
+                <strong>
                   {groupMembers.reduce((sum, m) => sum + (m.lp || 0), 0) || 0}
-                </span>
+                </strong>
               </div>
             </div>
           </div>
