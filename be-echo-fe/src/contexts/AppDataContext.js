@@ -822,10 +822,14 @@ export const AppDataProvider = ({ children }) => {
           updateData.username = updates.name;
         }
 
+        if (updates.photoURL !== undefined) {
+          updateData.photoURL = updates.photoURL;
+        }
+
         if (Object.keys(updateData).length > 0) {
           await updateDoc(userRef, updateData);
 
-          if (authUser.groupId && updates.name) {
+          if (authUser.groupId) {
             const memberRef = doc(
               db,
               "groups",
@@ -835,7 +839,16 @@ export const AppDataProvider = ({ children }) => {
             );
             const memberDoc = await getDoc(memberRef);
             if (memberDoc.exists()) {
-              await updateDoc(memberRef, { name: updates.name });
+              const memberUpdate = {};
+              if (updates.name) {
+                memberUpdate.name = updates.name;
+              }
+              if (updates.photoURL !== undefined) {
+                memberUpdate.photoURL = updates.photoURL;
+              }
+              if (Object.keys(memberUpdate).length > 0) {
+                await updateDoc(memberRef, memberUpdate);
+              }
             }
           }
 

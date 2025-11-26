@@ -246,6 +246,36 @@ export const AuthProvider = ({ children }) => {
 
       const userId = currentUser.uid;
 
+      const providerId = currentUser.providerData[0]?.providerId;
+
+      try {
+        if (providerId === "google.com") {
+          await reauthenticateWithPopup(currentUser, googleProvider);
+        } else if (providerId === "password") {
+          const password = window.prompt(
+            "계정 삭제를 위해 비밀번호를 다시 입력해주세요:"
+          );
+          if (!password) {
+            throw new Error("비밀번호가 필요합니다.");
+          }
+          const credential = EmailAuthProvider.credential(
+            currentUser.email,
+            password
+          );
+          await reauthenticateWithCredential(currentUser, credential);
+        }
+      } catch (reauthError) {
+        if (reauthError.code === "auth/requires-recent-login") {
+          throw new Error(
+            "보안을 위해 다시 로그인해주세요. 잠시 후 다시 시도해주세요."
+          );
+        }
+        if (reauthError.code === "auth/popup-closed-by-user") {
+          throw new Error("재인증이 취소되었습니다.");
+        }
+        throw reauthError;
+      }
+
       const userDocRef = doc(db, "users", userId);
       const userDoc = await getDoc(userDocRef);
       const userData = userDoc.exists() ? userDoc.data() : null;
@@ -339,36 +369,13 @@ export const AuthProvider = ({ children }) => {
         await deleteDoc(userDocRef);
       }
 
-      const providerId = currentUser.providerData[0]?.providerId;
-
-      try {
-        if (providerId === "google.com") {
-          await reauthenticateWithPopup(currentUser, googleProvider);
-        } else if (providerId === "password") {
-          const password = window.prompt(
-            "계정 삭제를 위해 비밀번호를 다시 입력해주세요:"
-          );
-          if (!password) {
-            throw new Error("비밀번호가 필요합니다.");
-          }
-          const credential = EmailAuthProvider.credential(
-            currentUser.email,
-            password
-          );
-          await reauthenticateWithCredential(currentUser, credential);
-        }
-
-        await deleteUser(currentUser);
-      } catch (reauthError) {
-        if (reauthError.code === "auth/requires-recent-login") {
-          throw new Error(
-            "보안을 위해 다시 로그인해주세요. 잠시 후 다시 시도해주세요."
-          );
-        }
-        if (reauthError.code === "auth/popup-closed-by-user") {
-          throw new Error("재인증이 취소되었습니다.");
-        }
-        throw reauthError;
+      // 3. 마지막으로 Authentication에서 사용자 삭제
+      // 재인증 후에는 currentUser가 업데이트되었을 수 있으므로 다시 가져옴
+      const updatedUser = auth.currentUser;
+      if (updatedUser) {
+        await deleteUser(updatedUser);
+      } else {
+        throw new Error("사용자 정보를 찾을 수 없습니다.");
       }
 
       setUser(null);

@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { IconButton } from "../ui";
 import { SettingsIcon } from "../icons";
 import { ReactComponent as LogoIcon } from "../icons/LogoIcon.svg";
 import { useAuth } from "../../contexts/AuthContext";
+import { uploadProfileImage } from "../../services/profile";
 
-const AppHeader = ({ userName, lp, streak, onUpdateName }) => {
-  const { logout, deleteAccount } = useAuth();
+const AppHeader = ({ userName, lp, streak, photoURL, onUpdateName, onUpdatePhoto }) => {
+  const { logout, deleteAccount, user } = useAuth();
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [nameInput, setNameInput] = useState(userName || "");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (isSettingsOpen) {
@@ -34,6 +37,55 @@ const AppHeader = ({ userName, lp, streak, onUpdateName }) => {
     }
   };
 
+  const handleImageSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImageChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // 이미지 파일 검증
+    if (!file.type.startsWith("image/")) {
+      alert("이미지 파일만 업로드할 수 있습니다.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("이미지 크기는 5MB 이하여야 합니다.");
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      const reader = new FileReader();
+      
+      reader.onload = async (e) => {
+        try {
+          const imageDataUrl = e.target.result;
+          const downloadURL = await uploadProfileImage(imageDataUrl, user?.id);
+          await onUpdatePhoto?.({ photoURL: downloadURL });
+        } catch (error) {
+          console.error("프로필 사진 업로드 오류:", error);
+          alert("프로필 사진 업로드 중 오류가 발생했습니다. 다시 시도해주세요.");
+        } finally {
+          setIsUploading(false);
+        }
+      };
+
+      reader.onerror = () => {
+        setIsUploading(false);
+        alert("이미지 읽기 중 오류가 발생했습니다.");
+      };
+
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("프로필 사진 처리 오류:", error);
+      setIsUploading(false);
+      alert("프로필 사진 처리 중 오류가 발생했습니다.");
+    }
+  };
+
   return (
     <header className="app-header">
       <div className="header-top">
@@ -49,15 +101,41 @@ const AppHeader = ({ userName, lp, streak, onUpdateName }) => {
         </div>
         <div className="header-actions">
           <div className="header-user">
-            <span className="header-user-name">{userName || "user"}</span>
-            <span className="header-user-meta">
-              {lp ?? 0} LP · {streak ?? 0}일
-            </span>
+            <div
+              className="header-user-avatar"
+              onClick={handleImageSelect}
+              style={{ cursor: isUploading ? "wait" : "pointer" }}
+              title="프로필 사진 변경"
+            >
+              {photoURL && !isUploading ? (
+                <img src={photoURL} alt={userName || "user"} />
+              ) : (
+                <span>{userName?.[0] || "U"}</span>
+              )}
+              {isUploading && (
+                <div className="header-user-avatar-loading">
+                  <div className="loading-spinner"></div>
+                </div>
+              )}
+            </div>
+            <div className="header-user-info">
+              <span className="header-user-name">{userName || "user"}</span>
+              <span className="header-user-meta">
+                {lp ?? 0} LP · {streak ?? 0}일
+              </span>
+            </div>
           </div>
           <IconButton label="설정" onClick={toggleSettings}>
             <SettingsIcon />
           </IconButton>
         </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={handleImageChange}
+        />
       </div>
 
       {/* 설정 */}
