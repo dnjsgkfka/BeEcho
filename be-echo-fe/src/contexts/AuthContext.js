@@ -8,6 +8,9 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   deleteUser,
+  reauthenticateWithPopup,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
 } from "firebase/auth";
 import { auth, googleProvider } from "../config/firebase";
 import {
@@ -20,6 +23,7 @@ import {
   where,
   getDocs,
   updateDoc,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 
@@ -84,6 +88,8 @@ export const AuthProvider = ({ children }) => {
               firebaseUser.photoURL ||
               updates.photoURL ||
               existingData.photoURL,
+            groupId: existingData.groupId || null,
+            isGroupLeader: existingData.isGroupLeader || false,
           });
         } else {
           const newUserData = {
@@ -105,6 +111,8 @@ export const AuthProvider = ({ children }) => {
           setUser({
             id: firebaseUser.uid,
             ...newUserData,
+            groupId: null,
+            isGroupLeader: false,
           });
         }
       } else {
@@ -249,8 +257,8 @@ export const AuthProvider = ({ children }) => {
         if (groupDoc.exists()) {
           const groupData = groupDoc.data();
 
-          // 그룹장인 경우
           if (groupData.leaderId === userId) {
+            const batch = writeBatch(db);
             const membersRef = collection(
               db,
               "groups",
@@ -258,36 +266,61 @@ export const AuthProvider = ({ children }) => {
               "members"
             );
             const membersSnapshot = await getDocs(membersRef);
-            const members = membersSnapshot.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            }));
 
-            if (members.length > 0) {
-              const newLeader = members[0];
-              await updateDoc(groupRef, {
-                leaderId: newLeader.id,
-              });
-            } else {
-              await deleteDoc(groupRef);
+            membersSnapshot.docs.forEach((memberDoc) => {
+              const memberId = memberDoc.id;
+              if (memberId !== userId) {
+                const memberUserRef = doc(db, "users", memberId);
+                batch.update(memberUserRef, { groupId: null });
+              }
+              batch.delete(memberDoc.ref);
+            });
+
+            const verificationsRef = collection(db, "verifications");
+            const groupVerificationsQuery = query(
+              verificationsRef,
+              where("groupId", "==", userData.groupId)
+            );
+            const verificationsSnapshot = await getDocs(
+              groupVerificationsQuery
+            );
+            verificationsSnapshot.docs.forEach((verificationDoc) => {
+              batch.update(verificationDoc.ref, { groupId: null });
+            });
+
+            batch.delete(groupRef);
+            await batch.commit();
+          } else {
+            try {
+              const memberRef = doc(
+                db,
+                "groups",
+                userData.groupId,
+                "members",
+                userId
+              );
+              const memberDoc = await getDoc(memberRef);
+              if (memberDoc.exists()) {
+                await deleteDoc(memberRef);
+              }
+
+              const updatedGroupDoc = await getDoc(groupRef);
+              if (updatedGroupDoc.exists()) {
+                const updatedGroupData = updatedGroupDoc.data();
+                const newMemberCount = Math.max(
+                  (updatedGroupData.memberCount || 1) - 1,
+                  0
+                );
+                if (newMemberCount >= 0) {
+                  await updateDoc(groupRef, {
+                    memberCount: newMemberCount,
+                  });
+                }
+              }
+            } catch (groupError) {
+              console.warn("그룹 업데이트 오류 (무시됨):", groupError);
             }
           }
-
-          const memberRef = doc(
-            db,
-            "groups",
-            userData.groupId,
-            "members",
-            userId
-          );
-          const memberDoc = await getDoc(memberRef);
-          if (memberDoc.exists()) {
-            await deleteDoc(memberRef);
-          }
-
-          await updateDoc(groupRef, {
-            memberCount: (groupData.memberCount || 1) - 1,
-          });
         }
       }
 
@@ -306,14 +339,81 @@ export const AuthProvider = ({ children }) => {
         await deleteDoc(userDocRef);
       }
 
-      await deleteUser(currentUser);
+      const providerId = currentUser.providerData[0]?.providerId;
+
+      try {
+        if (providerId === "google.com") {
+          await reauthenticateWithPopup(currentUser, googleProvider);
+        } else if (providerId === "password") {
+          const password = window.prompt(
+            "계정 삭제를 위해 비밀번호를 다시 입력해주세요:"
+          );
+          if (!password) {
+            throw new Error("비밀번호가 필요합니다.");
+          }
+          const credential = EmailAuthProvider.credential(
+            currentUser.email,
+            password
+          );
+          await reauthenticateWithCredential(currentUser, credential);
+        }
+
+        await deleteUser(currentUser);
+      } catch (reauthError) {
+        if (reauthError.code === "auth/requires-recent-login") {
+          throw new Error(
+            "보안을 위해 다시 로그인해주세요. 잠시 후 다시 시도해주세요."
+          );
+        }
+        if (reauthError.code === "auth/popup-closed-by-user") {
+          throw new Error("재인증이 취소되었습니다.");
+        }
+        throw reauthError;
+      }
 
       setUser(null);
+
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+        window.location.href = "/";
+      }
 
       return { success: true };
     } catch (error) {
       console.error("회원탈퇴 오류:", error);
       throw error;
+    }
+  };
+
+  const refreshUser = async () => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        setUser(null);
+        return;
+      }
+
+      const userDocRef = doc(db, "users", currentUser.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists()) {
+        const existingData = userDoc.data();
+        setUser({
+          id: currentUser.uid,
+          email: currentUser.email,
+          ...existingData,
+          name: currentUser.displayName || existingData.name || "사용자",
+          username:
+            currentUser.displayName ||
+            existingData.username ||
+            existingData.name ||
+            "사용자",
+          photoURL: currentUser.photoURL || existingData.photoURL,
+          groupId: existingData.groupId || null,
+        });
+      }
+    } catch (error) {
+      console.error("사용자 정보 새로고침 오류:", error);
     }
   };
 
@@ -326,6 +426,7 @@ export const AuthProvider = ({ children }) => {
     resetPassword,
     logout,
     deleteAccount,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

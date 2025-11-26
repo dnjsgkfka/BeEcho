@@ -1,24 +1,119 @@
 import React, { useState } from "react";
 import "../../styles/group-modal.css";
+import { useAuth } from "../../contexts/AuthContext";
+import { createGroup } from "../../services/groups";
 
-const CreateGroupModal = ({ isOpen, onClose }) => {
+const CreateGroupModal = ({ isOpen, onClose, onSuccess }) => {
+  const { user } = useAuth();
   const [groupName, setGroupName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState(null);
+  const [createdGroupCode, setCreatedGroupCode] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!groupName.trim()) return;
 
+    if (!user) {
+      setError("로그인이 필요합니다.");
+      return;
+    }
+
+    if (user.groupId) {
+      const confirmLeave = window.confirm(
+        "이미 다른 그룹에 속해있습니다.\n새 그룹을 만들려면 기존 그룹을 나가야 합니다.\n계속하시겠습니까?"
+      );
+      if (!confirmLeave) {
+        return;
+      }
+      // TODO: 기존 그룹에서 나가기 기능 추가
+      setError("기존 그룹에서 나가는 기능은 아직 구현되지 않았습니다.");
+      return;
+    }
+
     setIsCreating(true);
-    // TODO: Firebase에 그룹 생성
-    setTimeout(() => {
-      setIsCreating(false);
-      onClose();
+    setError(null);
+
+    try {
+      const result = await createGroup(
+        groupName,
+        user.id,
+        user.name || user.username || "사용자",
+        user.photoURL
+      );
+
+      setCreatedGroupCode(result.code);
       setGroupName("");
-    }, 1000);
+
+      if (onSuccess) {
+        onSuccess(result);
+      }
+    } catch (error) {
+      console.error("그룹 생성 오류:", error);
+      setError(error.message || "그룹 생성에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   if (!isOpen) return null;
+
+  if (createdGroupCode) {
+    const handleCopyCode = () => {
+      navigator.clipboard.writeText(createdGroupCode);
+      alert("그룹 코드가 복사되었습니다!");
+    };
+
+    const handleClose = () => {
+      setCreatedGroupCode(null);
+      onClose();
+    };
+
+    return (
+      <div className="group-modal-overlay" onClick={handleClose}>
+        <div
+          className="group-modal-content"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="group-modal-header">
+            <h3>그룹이 생성되었습니다.</h3>
+            <button className="group-modal-close" onClick={handleClose}>
+              ✕
+            </button>
+          </div>
+
+          <div className="group-modal-success-content">
+            <div className="group-code-display">
+              <p className="group-code-label">그룹 코드</p>
+              <div className="group-code-box">
+                <span className="group-code-text">{createdGroupCode}</span>
+                <button
+                  type="button"
+                  className="group-code-copy-btn"
+                  onClick={handleCopyCode}
+                >
+                  복사
+                </button>
+              </div>
+              <p className="group-code-hint">
+                이 코드를 공유하여 멤버를 초대하세요
+              </p>
+            </div>
+
+            <div className="group-modal-actions">
+              <button
+                type="button"
+                className="group-modal-button group-modal-button-primary"
+                onClick={handleClose}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="group-modal-overlay" onClick={onClose}>
@@ -45,6 +140,7 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
             <p className="group-modal-hint">
               멤버들이 볼 그룹 이름을 정해주세요
             </p>
+            {error && <p className="group-modal-error">{error}</p>}
           </div>
 
           <div className="group-modal-actions">

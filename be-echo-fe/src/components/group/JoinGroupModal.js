@@ -1,30 +1,50 @@
 import React, { useState } from "react";
 import "../../styles/group-modal.css";
+import { useAuth } from "../../contexts/AuthContext";
+import { joinGroup } from "../../services/groups";
 
-const JoinGroupModal = ({ isOpen, onClose }) => {
+const JoinGroupModal = ({ isOpen, onClose, onSuccess }) => {
+  const { user } = useAuth();
   const [groupCode, setGroupCode] = useState("");
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!groupCode.trim()) return;
+    if (!groupCode.trim() || groupCode.length !== 6) {
+      setError("그룹 코드는 6자리여야 합니다");
+      return;
+    }
+
+    if (!user) {
+      setError("로그인이 필요합니다.");
+      return;
+    }
 
     setError(null);
     setIsJoining(true);
 
-    // TODO: Firebase-그룹 코드 검색 및 참여 구현 필요
-    setTimeout(() => {
-      setIsJoining(false);
-      // (임시)
-      if (groupCode.length !== 6) {
-        setError("그룹 코드는 6자리여야 합니다");
-      } else {
-        onClose();
-        setGroupCode("");
-        setError(null);
+    try {
+      const result = await joinGroup(
+        groupCode,
+        user.id,
+        user.name || user.username || "사용자",
+        user.photoURL
+      );
+
+      alert(`${result.groupName} 그룹에 참여했습니다!`);
+      setGroupCode("");
+      onClose();
+
+      if (onSuccess) {
+        onSuccess(result);
       }
-    }, 1000);
+    } catch (error) {
+      console.error("그룹 참여 오류:", error);
+      setError(error.message || "그룹 참여에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsJoining(false);
+    }
   };
 
   if (!isOpen) return null;

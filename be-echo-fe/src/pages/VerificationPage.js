@@ -2,7 +2,13 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import "../styles/verification.css";
 import { CameraIcon, InfoIcon } from "../components/icons";
 import { useAppData } from "../contexts/AppDataContext";
+import { useAuth } from "../contexts/AuthContext";
 import useTumblerVerification from "../hooks/useTumblerVerification";
+import {
+  uploadVerificationImage,
+  saveVerification,
+  checkTodayVerification,
+} from "../services/verifications";
 
 const readFileAsDataUrl = (file) =>
   new Promise((resolve, reject) => {
@@ -41,6 +47,7 @@ const CERT_GUIDE = [
 
 const VerificationPage = () => {
   const { home, actions, history } = useAppData();
+  const { user: authUser, refreshUser } = useAuth();
   const fileInputRef = useRef(null);
   const pendingImageRef = useRef(null);
   const [pendingImage, setPendingImage] = useState(null);
@@ -49,6 +56,7 @@ const VerificationPage = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [successImageDataUrl, setSuccessImageDataUrl] = useState(null);
   const [verificationError, setVerificationError] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // 최근 성공 인증 내역 (최대 6개)
   const recentSuccessHistory = useMemo(() => {
@@ -73,8 +81,13 @@ const VerificationPage = () => {
   }, [home.canVerify]);
 
   const handleVerificationSuccess = useCallback(
-    (result) => {
+    async (result) => {
       const imageToSave = pendingImageRef.current;
+
+      if (!authUser?.id) {
+        setVerificationError("로그인이 필요합니다.");
+        return;
+      }
 
       const meta = actions.logVerification({
         ...result,
@@ -89,26 +102,63 @@ const VerificationPage = () => {
         pendingImageRef.current = null;
         setIsShareModalOpen(false);
         setVerificationError(null);
-      } else if (result?.success) {
+        return;
+      }
+
+      if (result?.success) {
         setOverrideMessage(null);
         setVerificationError(null);
-        if (imageToSave) {
+        setIsSaving(true);
+
+        try {
+          if (!imageToSave) {
+            throw new Error("이미지 데이터가 없습니다.");
+          }
+
+          const alreadyVerified = await checkTodayVerification(authUser.id);
+          if (alreadyVerified) {
+            setOverrideMessage(
+              "오늘 인증은 이미 완료되었어요. 내일 다시 시도해주세요."
+            );
+            setPendingImage(null);
+            pendingImageRef.current = null;
+            setIsShareModalOpen(false);
+            setIsSaving(false);
+            return;
+          }
+
+          const imageUrl = await uploadVerificationImage(
+            imageToSave,
+            authUser.id
+          );
+
+          await saveVerification({
+            userId: authUser.id,
+            userName: authUser.name || authUser.username || "사용자",
+            groupId: authUser.groupId || null,
+            imageUrl,
+            success: true,
+            confidence: result.confidence || null,
+          });
+
+          await refreshUser();
           setSuccessImageDataUrl(imageToSave);
-          // 팝업은 이미 열려있으므로 상태만 업데이트
-        } else {
-          setPendingImage(null);
-          pendingImageRef.current = null;
-          setIsShareModalOpen(false);
+        } catch (error) {
+          console.error("인증 저장 오류:", error);
+          setVerificationError(
+            error.message || "인증 저장 중 오류가 발생했습니다."
+          );
+          setSuccessImageDataUrl(null);
+        } finally {
+          setIsSaving(false);
         }
       } else {
-        // 인증 실패 (일회용 컵 또는 객체 감지 실패)
         setOverrideMessage(null);
         setVerificationError(result?.message || "인증에 실패했어요.");
         setSuccessImageDataUrl(null);
-        // 팝업은 열어두고 실패 메시지 표시
       }
     },
-    [actions]
+    [actions, authUser]
   );
 
   const handleVerificationError = useCallback(
@@ -282,10 +332,12 @@ const VerificationPage = () => {
           aria-modal="true"
         >
           <div className="verification-success-modal-content">
-            {status === "loading" ? (
+            {status === "loading" || isSaving ? (
               <>
                 <div className="verification-success-modal-header">
-                  <h3>인증 처리 중...</h3>
+                  <h3>
+                    {status === "loading" ? "인증 처리 중..." : "저장 중..."}
+                  </h3>
                 </div>
                 <div className="verification-success-modal-body">
                   <div className="verification-success-image-wrapper">

@@ -27,7 +27,6 @@ const MainLayout = () => {
         userName={user?.name}
         lp={user?.lp}
         streak={user?.streakDays}
-        onReset={actions.resetState}
         onUpdateName={actions.updateProfile}
       />
       <main className="screen">
