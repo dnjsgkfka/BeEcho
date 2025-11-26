@@ -3,6 +3,7 @@ import "./App.css";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { AppDataProvider } from "./contexts/AppDataContext";
 import { NavigationProvider } from "./contexts/NavigationContext";
+import { ToastProvider } from "./contexts/ToastContext";
 import MainLayout from "./components/layout/MainLayout";
 import LoginPage from "./pages/LoginPage";
 
@@ -23,11 +24,13 @@ const AppContent = () => {
   }
 
   return (
-    <AppDataProvider>
-      <NavigationProvider>
-        <MainLayout />
-      </NavigationProvider>
-    </AppDataProvider>
+    <ToastProvider>
+      <AppDataProvider>
+        <NavigationProvider>
+          <MainLayout />
+        </NavigationProvider>
+      </AppDataProvider>
+    </ToastProvider>
   );
 };
 

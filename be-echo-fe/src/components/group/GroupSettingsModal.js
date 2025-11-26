@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "../../styles/group-modal.css";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "../../contexts/ToastContext";
 
 const GroupSettingsModal = ({
   isOpen,
@@ -14,6 +15,7 @@ const GroupSettingsModal = ({
   onDeleteGroup,
 }) => {
   const { user } = useAuth();
+  const toast = useToast();
   const [isEditingName, setIsEditingName] = useState(false);
   const [newGroupName, setNewGroupName] = useState(group?.name || "");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -35,9 +37,10 @@ const GroupSettingsModal = ({
     try {
       await onUpdateGroupName(newGroupName.trim());
       setIsEditingName(false);
+      toast.success("그룹 이름이 변경되었습니다.");
     } catch (error) {
       console.error("그룹 이름 변경 오류:", error);
-      alert("그룹 이름 변경 중 오류가 발생했습니다.");
+      toast.error("그룹 이름 변경 중 오류가 발생했습니다.");
     } finally {
       setIsUpdating(false);
     }
@@ -48,9 +51,10 @@ const GroupSettingsModal = ({
     try {
       await onUpdateAnnouncement(newAnnouncement.trim());
       setIsEditingAnnouncement(false);
+      toast.success("공지사항이 업데이트되었습니다.");
     } catch (error) {
       console.error("공지사항 업데이트 오류:", error);
-      alert("공지사항 업데이트 중 오류가 발생했습니다.");
+      toast.error("공지사항 업데이트 중 오류가 발생했습니다.");
     } finally {
       setIsUpdatingAnnouncement(false);
     }
@@ -67,9 +71,10 @@ const GroupSettingsModal = ({
 
     try {
       await onRemoveMember(memberId);
+      toast.success(`${memberName}님이 그룹에서 제거되었습니다.`);
     } catch (error) {
       console.error("멤버 방출 오류:", error);
-      alert("멤버 방출 중 오류가 발생했습니다.");
+      toast.error("멤버 방출 중 오류가 발생했습니다.");
     }
   };
 
@@ -84,10 +89,11 @@ const GroupSettingsModal = ({
 
     try {
       await onLeaveGroup();
+      toast.success("그룹에서 나갔습니다.");
       onClose();
     } catch (error) {
       console.error("그룹 나가기 오류:", error);
-      alert("그룹 나가기 중 오류가 발생했습니다.");
+      toast.error("그룹 나가기 중 오류가 발생했습니다.");
     }
   };
 
@@ -292,10 +298,11 @@ const GroupSettingsModal = ({
                     ) {
                       try {
                         await onDeleteGroup();
+                        toast.success("그룹이 삭제되었습니다.");
                         onClose();
                       } catch (error) {
                         console.error("그룹 삭제 오류:", error);
-                        alert("그룹 삭제 중 오류가 발생했습니다.");
+                        toast.error("그룹 삭제 중 오류가 발생했습니다.");
                       }
                     }
                   }

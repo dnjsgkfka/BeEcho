@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import "../../styles/group-modal.css";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "../../contexts/ToastContext";
 import { joinGroup } from "../../services/groups";
 
 const JoinGroupModal = ({ isOpen, onClose, onSuccess }) => {
   const { user } = useAuth();
+  const toast = useToast();
   const [groupCode, setGroupCode] = useState("");
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState(null);
@@ -32,7 +34,7 @@ const JoinGroupModal = ({ isOpen, onClose, onSuccess }) => {
         user.photoURL
       );
 
-      alert(`${result.groupName} 그룹에 참여했습니다!`);
+      toast.success(`${result.groupName} 그룹에 참여했습니다!`);
       setGroupCode("");
       onClose();
 

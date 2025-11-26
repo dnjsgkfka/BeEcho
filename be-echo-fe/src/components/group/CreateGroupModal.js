@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import "../../styles/group-modal.css";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "../../contexts/ToastContext";
 import { createGroup, leaveGroup, getGroup } from "../../services/groups";
 
 const CreateGroupModal = ({ isOpen, onClose, onSuccess }) => {
   const { user } = useAuth();
+  const toast = useToast();
   const [groupName, setGroupName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState(null);
@@ -87,7 +89,7 @@ const CreateGroupModal = ({ isOpen, onClose, onSuccess }) => {
   if (createdGroupCode) {
     const handleCopyCode = () => {
       navigator.clipboard.writeText(createdGroupCode);
-      alert("그룹 코드가 복사되었습니다!");
+      toast.success("그룹 코드가 복사되었습니다!");
     };
 
     const handleClose = () => {

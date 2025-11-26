@@ -1,18 +1,21 @@
 import React from "react";
 import ShareCard from "./ShareCard";
 import useShareCard from "../../hooks/useShareCard";
+import { useToast } from "../../contexts/ToastContext";
 import "../../styles/share-modal.css";
 
 const ShareModal = ({ isOpen, onClose, user, insights, achievements }) => {
   const { handleShare, shareToTwitter } = useShareCard();
+  const toast = useToast();
   const [isSharing, setIsSharing] = React.useState(false);
 
   const handleShareClick = async () => {
     setIsSharing(true);
     try {
       await handleShare();
+      toast.success("이미지가 공유되었습니다.");
     } catch (error) {
-      alert("공유 중 오류가 발생했습니다. 다시 시도해주세요.");
+      toast.error("공유 중 오류가 발생했습니다. 다시 시도해주세요.");
       console.error(error);
     } finally {
       setIsSharing(false);
