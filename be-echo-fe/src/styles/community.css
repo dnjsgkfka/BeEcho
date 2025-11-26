@@ -1,0 +1,59 @@
+.community {
+  padding-bottom: 0;
+}
+
+.subtab-nav {
+  display: flex;
+  gap: 8px;
+  padding: 0 24px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(9, 19, 31, 0.08);
+}
+
+.subtab-button {
+  padding: 12px 20px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.2s ease;
+}
+
+.subtab-button:hover {
+  color: var(--text);
+}
+
+.subtab-button.active {
+  color: #05c46b;
+  border-bottom-color: #05c46b;
+}
+
+.subtab-content {
+  min-height: 400px;
+}
+
+/* 서브페이지 스타일 조정 */
+.group-page,
+.ranking-page {
+  padding: 0;
+}
+
+.group-content,
+.ranking-content {
+  padding: 20px 24px;
+}
+
+@media (max-width: 640px) {
+  .subtab-nav {
+    padding: 0 16px;
+  }
+
+  .group-content,
+  .ranking-content {
+    padding: 0 16px 20px;
+  }
+}

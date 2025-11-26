@@ -1,11 +1,13 @@
 .status-card {
   position: relative;
-  background: #f5fff9;
-  border: 2px solid rgba(5, 196, 107, 0.1);
-  border-radius: var(--radius-lg);
+  background: linear-gradient(145deg, #f5fff9, #ebfff5);
+  border: none;
+  border-radius: 20px;
   color: var(--text);
-  padding: 16px 20px;
+  padding: 32px 28px;
   margin-bottom: 18px;
+  box-shadow: 0 4px 20px rgba(5, 196, 107, 0.08),
+    0 1px 3px rgba(5, 196, 107, 0.1);
 }
 
 .status-card h3 {
@@ -57,18 +59,26 @@
 
 .info-button {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 32px;
-  height: 32px;
+  top: 20px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
   border-radius: 12px;
   border: none;
-  background: rgba(5, 196, 107, 0.12);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   color: #05c46b;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(5, 196, 107, 0.15);
+}
+
+.info-button:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: scale(1.05);
 }
 
 .info-button svg {
