@@ -16,6 +16,9 @@ import {
   clearAllStates,
 } from "../services/storage";
 import { deriveGradeName } from "../utils/grade";
+import { getLocalDateString } from "../utils/date";
+import { MAX_HISTORY_ENTRIES, INSIGHT_WEEKS } from "../constants/app";
+import { logError } from "../utils/logger";
 import { useAuth } from "./AuthContext";
 import {
   doc,
@@ -28,9 +31,6 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
-
-const MAX_HISTORY_ENTRIES = 365;
-const INSIGHT_WEEKS = 4;
 
 {
   /* 기본 값 */
@@ -79,10 +79,7 @@ const formatDateKey = (value) => {
   if (!date || Number.isNaN(date.getTime())) {
     return null;
   }
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return getLocalDateString(date);
 };
 
 const differenceInDays = (dateA, dateB) => {
@@ -881,7 +878,7 @@ export const AppDataProvider = ({ children }) => {
           },
         }));
       } catch (error) {
-        console.error("프로필 업데이트 오류:", error);
+        logError("프로필 업데이트 오류:", error);
         throw error;
       }
     },

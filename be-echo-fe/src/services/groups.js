@@ -12,15 +12,18 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
+import { GROUP_CODE_LENGTH, GROUP_CODE_CHARS } from "../constants/app";
+import { logError } from "../utils/logger";
 
 /**
  * 6자리 그룹 코드 (영문 대문자 + 숫자)
  */
 const generateGroupCode = () => {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let code = "";
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  for (let i = 0; i < GROUP_CODE_LENGTH; i++) {
+    code += GROUP_CODE_CHARS.charAt(
+      Math.floor(Math.random() * GROUP_CODE_CHARS.length)
+    );
   }
   return code;
 };
@@ -35,7 +38,7 @@ const checkGroupCodeExists = async (code) => {
     const querySnapshot = await getDocs(q);
     return !querySnapshot.empty;
   } catch (error) {
-    console.error("그룹 코드 중복 체크 오류:", error);
+    logError("그룹 코드 중복 체크 오류:", error);
     return true;
   }
 };
@@ -113,12 +116,33 @@ export const createGroup = async (
       isGroupLeader: true,
     });
 
+    // 기존 인증 데이터의 groupId 업데이트 (오늘 인증 포함)
+    const verificationsRef = collection(db, "verifications");
+    const userVerificationsQuery = query(
+      verificationsRef,
+      where("userId", "==", leaderId),
+      where("success", "==", true)
+    );
+    const verificationsSnapshot = await getDocs(userVerificationsQuery);
+
+    if (!verificationsSnapshot.empty) {
+      const batch = writeBatch(db);
+      verificationsSnapshot.docs.forEach((verificationDoc) => {
+        const verificationData = verificationDoc.data();
+        // groupId가 null이거나 다른 그룹인 경우에만 업데이트
+        if (!verificationData.groupId) {
+          batch.update(verificationDoc.ref, { groupId: groupId });
+        }
+      });
+      await batch.commit();
+    }
+
     return {
       groupId: groupId,
       code: code,
     };
   } catch (error) {
-    console.error("그룹 생성 오류:", error);
+    logError("그룹 생성 오류:", error);
     throw error;
   }
 };
@@ -144,7 +168,7 @@ export const findGroupByCode = async (code) => {
       ...groupDoc.data(),
     };
   } catch (error) {
-    console.error("그룹 검색 오류:", error);
+    logError("그룹 검색 오류:", error);
     throw error;
   }
 };
@@ -207,6 +231,27 @@ export const joinGroup = async (code, userId, userName, userPhotoURL) => {
       isGroupLeader: false,
     });
 
+    // 기존 인증 데이터의 groupId 업데이트 (오늘 인증 포함)
+    const verificationsRef = collection(db, "verifications");
+    const userVerificationsQuery = query(
+      verificationsRef,
+      where("userId", "==", userId),
+      where("success", "==", true)
+    );
+    const verificationsSnapshot = await getDocs(userVerificationsQuery);
+
+    if (!verificationsSnapshot.empty) {
+      const batch = writeBatch(db);
+      verificationsSnapshot.docs.forEach((verificationDoc) => {
+        const verificationData = verificationDoc.data();
+        // groupId가 null이거나 다른 그룹인 경우에만 업데이트
+        if (!verificationData.groupId) {
+          batch.update(verificationDoc.ref, { groupId: groupId });
+        }
+      });
+      await batch.commit();
+    }
+
     const groupRef = doc(db, "groups", groupId);
     await updateDoc(groupRef, {
       memberCount: (group.memberCount || 1) + 1,
@@ -241,7 +286,7 @@ export const getGroup = async (groupId) => {
       ...groupDoc.data(),
     };
   } catch (error) {
-    console.error("그룹 정보 가져오기 오류:", error);
+    logError("그룹 정보 가져오기 오류:", error);
     throw error;
   }
 };
@@ -261,7 +306,7 @@ export const getGroupMembers = async (groupId) => {
       ...doc.data(),
     }));
   } catch (error) {
-    console.error("그룹 멤버 목록 가져오기 오류:", error);
+    logError("그룹 멤버 목록 가져오기 오류:", error);
     throw error;
   }
 };
@@ -311,7 +356,7 @@ export const deleteGroup = async (groupId, leaderId) => {
     batch.delete(groupRef);
     await batch.commit();
   } catch (error) {
-    console.error("그룹 삭제 오류:", error);
+    logError("그룹 삭제 오류:", error);
     throw error;
   }
 };
@@ -345,7 +390,7 @@ export const updateGroupName = async (groupId, leaderId, newName) => {
       name: newName.trim(),
     });
   } catch (error) {
-    console.error("그룹 이름 변경 오류:", error);
+    logError("그룹 이름 변경 오류:", error);
     throw error;
   }
 };
@@ -380,7 +425,7 @@ export const updateGroupAnnouncement = async (
       announcementUpdatedAt: serverTimestamp(),
     });
   } catch (error) {
-    console.error("그룹 공지사항 업데이트 오류:", error);
+    logError("그룹 공지사항 업데이트 오류:", error);
     throw error;
   }
 };
@@ -430,7 +475,7 @@ export const removeMember = async (groupId, leaderId, memberId) => {
 
     await batch.commit();
   } catch (error) {
-    console.error("멤버 방출 오류:", error);
+    logError("멤버 방출 오류:", error);
     throw error;
   }
 };
@@ -475,7 +520,7 @@ export const leaveGroup = async (groupId, userId) => {
 
     await batch.commit();
   } catch (error) {
-    console.error("그룹 나가기 오류:", error);
+    logError("그룹 나가기 오류:", error);
     throw error;
   }
 };

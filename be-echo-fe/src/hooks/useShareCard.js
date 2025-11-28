@@ -1,12 +1,12 @@
 import { useCallback } from "react";
 import html2canvas from "html2canvas";
+import { logError, logWarn } from "../utils/logger";
 
 const useShareCard = () => {
-
   const generateImage = useCallback(async () => {
     const cardElement = document.getElementById("share-card");
     if (!cardElement) {
-      console.error("Card element not found");
+      logError("Card element not found");
       throw new Error("공유 카드를 찾을 수 없습니다.");
     }
 
@@ -49,7 +49,7 @@ const useShareCard = () => {
         );
       });
     } catch (error) {
-      console.error("이미지 생성 오류:", error);
+      logError("이미지 생성 오류:", error);
       throw error;
     }
   }, []);
@@ -75,7 +75,7 @@ const useShareCard = () => {
           if (error.name === "AbortError") {
             return { success: false, method: "cancelled" };
           }
-          console.warn("Web Share API 실패, 다운로드로 전환:", error);
+          logWarn("Web Share API 실패, 다운로드로 전환:", error);
         }
       }
 
@@ -91,7 +91,7 @@ const useShareCard = () => {
         URL.revokeObjectURL(url);
         return { success: true, method: "download" };
       } catch (error) {
-        console.error("다운로드 실패:", error);
+        logError("다운로드 실패:", error);
         throw error;
       }
     },
@@ -110,7 +110,7 @@ const useShareCard = () => {
       const blob = await generateImage();
       return await shareImage(blob);
     } catch (error) {
-      console.error("공유 처리 전체 오류:", error);
+      logError("공유 처리 전체 오류:", error);
       throw error;
     }
   }, [generateImage, shareImage]);

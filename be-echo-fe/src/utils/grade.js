@@ -74,23 +74,6 @@ export const getGradeProgress = (lp) => {
   return Math.min(100, Math.max(0, (progress / range) * 100));
 };
 
-// 등급 정보 전체 반환
-export const getGradeInfo = (lp) => {
-  const code = deriveGradeCode(lp);
-  const name = deriveGradeName(lp);
-  const nextLP = getNextGradeLP(lp);
-  const progress = getGradeProgress(lp);
-
-  return {
-    code,
-    name,
-    lp,
-    nextLP,
-    progress,
-    remainingLP: nextLP ? nextLP - lp : 0,
-  };
-};
-
 // 등급 가이드 생성
 export const getGradeGuide = () => {
   return GRADE_ORDER.map((grade) => {

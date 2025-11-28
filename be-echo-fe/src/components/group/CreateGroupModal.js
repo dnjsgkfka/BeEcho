@@ -3,6 +3,7 @@ import "../../styles/group-modal.css";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { createGroup, leaveGroup, getGroup } from "../../services/groups";
+import { logError } from "../../utils/logger";
 
 const CreateGroupModal = ({ isOpen, onClose, onSuccess }) => {
   const { user } = useAuth();
@@ -28,30 +29,34 @@ const CreateGroupModal = ({ isOpen, onClose, onSuccess }) => {
       if (!confirmLeave) {
         return;
       }
-      
+
       setIsCreating(true);
       setError(null);
-      
+
       try {
         // 그룹 정보 확인
         const group = await getGroup(user.groupId);
         if (!group) {
           throw new Error("그룹 정보를 찾을 수 없습니다.");
         }
-        
+
         // 그룹장인 경우 나가기 불가
         if (group.leaderId === user.id) {
-          setError("그룹장은 그룹을 나갈 수 없습니다. 그룹 설정에서 그룹을 삭제해주세요.");
+          setError(
+            "그룹장은 그룹을 나갈 수 없습니다. 그룹 설정에서 그룹을 삭제해주세요."
+          );
           setIsCreating(false);
           return;
         }
-        
+
         // 그룹 나가기
         await leaveGroup(user.groupId, user.id);
         // 그룹 나가기 성공 후 계속 진행
       } catch (error) {
-        console.error("그룹 나가기 오류:", error);
-        setError(error.message || "그룹 나가기에 실패했습니다. 다시 시도해주세요.");
+        logError("그룹 나가기 오류:", error);
+        setError(
+          error.message || "그룹 나가기에 실패했습니다. 다시 시도해주세요."
+        );
         setIsCreating(false);
         return;
       }
@@ -77,7 +82,7 @@ const CreateGroupModal = ({ isOpen, onClose, onSuccess }) => {
         onSuccess(result);
       }
     } catch (error) {
-      console.error("그룹 생성 오류:", error);
+      logError("그룹 생성 오류:", error);
       setError(error.message || "그룹 생성에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setIsCreating(false);

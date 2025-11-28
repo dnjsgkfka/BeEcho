@@ -8,7 +8,10 @@ import {
   getGroupRankings,
   getUserPersonalRank,
   getGroupRank,
+  getTotalPersonalCount,
+  getTotalGroupCount,
 } from "../services/rankings";
+import { logError } from "../utils/logger";
 
 const RankingPage = () => {
   const { user: appDataUser } = useAppData();
@@ -19,6 +22,8 @@ const RankingPage = () => {
   const [groupRankings, setGroupRankings] = useState([]);
   const [myPersonalRank, setMyPersonalRank] = useState(null);
   const [myGroupRank, setMyGroupRank] = useState(null);
+  const [totalPersonalCount, setTotalPersonalCount] = useState(0);
+  const [totalGroupCount, setTotalGroupCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -26,22 +31,30 @@ const RankingPage = () => {
       setIsLoading(true);
       try {
         if (activeTab === "personal") {
-          const rankings = await getPersonalRankings(100);
+          const [rankings, totalCount] = await Promise.all([
+            getPersonalRankings(),
+            getTotalPersonalCount(),
+          ]);
           setPersonalRankings(rankings);
+          setTotalPersonalCount(totalCount);
           if (user?.id) {
             const myRank = await getUserPersonalRank(user.id);
             setMyPersonalRank(myRank);
           }
         } else {
-          const rankings = await getGroupRankings(100);
+          const [rankings, totalCount] = await Promise.all([
+            getGroupRankings(),
+            getTotalGroupCount(),
+          ]);
           setGroupRankings(rankings);
+          setTotalGroupCount(totalCount);
           if (user?.groupId) {
             const groupRank = await getGroupRank(user.groupId);
             setMyGroupRank(groupRank);
           }
         }
       } catch (error) {
-        console.error("랭킹 데이터 로드 오류:", error);
+        logError("랭킹 데이터 로드 오류:", error);
       } finally {
         setIsLoading(false);
       }
@@ -123,7 +136,12 @@ const RankingPage = () => {
       <div className="ranking-list">
         <div className="ranking-list-header">
           <h4>전체 랭킹</h4>
-          <span className="ranking-list-count">{rankings.length}명</span>
+          <span className="ranking-list-count">
+            총{" "}
+            {activeTab === "personal"
+              ? `${totalPersonalCount}명`
+              : `${totalGroupCount}그룹`}
+          </span>
         </div>
 
         {isLoading && rankings.length === 0 ? (

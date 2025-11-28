@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "../../styles/group-modal.css";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
+import { logError } from "../../utils/logger";
 
 const GroupSettingsModal = ({
   isOpen,
@@ -39,7 +40,7 @@ const GroupSettingsModal = ({
       setIsEditingName(false);
       toast.success("그룹 이름이 변경되었습니다.");
     } catch (error) {
-      console.error("그룹 이름 변경 오류:", error);
+      logError("그룹 이름 변경 오류:", error);
       toast.error("그룹 이름 변경 중 오류가 발생했습니다.");
     } finally {
       setIsUpdating(false);
@@ -53,7 +54,7 @@ const GroupSettingsModal = ({
       setIsEditingAnnouncement(false);
       toast.success("공지사항이 업데이트되었습니다.");
     } catch (error) {
-      console.error("공지사항 업데이트 오류:", error);
+      logError("공지사항 업데이트 오류:", error);
       toast.error("공지사항 업데이트 중 오류가 발생했습니다.");
     } finally {
       setIsUpdatingAnnouncement(false);
@@ -73,7 +74,7 @@ const GroupSettingsModal = ({
       await onRemoveMember(memberId);
       toast.success(`${memberName}님이 그룹에서 제거되었습니다.`);
     } catch (error) {
-      console.error("멤버 방출 오류:", error);
+      logError("멤버 방출 오류:", error);
       toast.error("멤버 방출 중 오류가 발생했습니다.");
     }
   };
@@ -92,7 +93,7 @@ const GroupSettingsModal = ({
       toast.success("그룹에서 나갔습니다.");
       onClose();
     } catch (error) {
-      console.error("그룹 나가기 오류:", error);
+      logError("그룹 나가기 오류:", error);
       toast.error("그룹 나가기 중 오류가 발생했습니다.");
     }
   };
@@ -301,7 +302,7 @@ const GroupSettingsModal = ({
                         toast.success("그룹이 삭제되었습니다.");
                         onClose();
                       } catch (error) {
-                        console.error("그룹 삭제 오류:", error);
+                        logError("그룹 삭제 오류:", error);
                         toast.error("그룹 삭제 중 오류가 발생했습니다.");
                       }
                     }
