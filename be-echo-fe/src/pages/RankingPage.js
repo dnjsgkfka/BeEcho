@@ -11,6 +11,7 @@ import {
   getTotalPersonalCount,
   getTotalGroupCount,
 } from "../services/rankings";
+import { logError } from "../utils/logger";
 
 const RankingPage = () => {
   const { user: appDataUser } = useAppData();
@@ -31,7 +32,7 @@ const RankingPage = () => {
       try {
         if (activeTab === "personal") {
           const [rankings, totalCount] = await Promise.all([
-            getPersonalRankings(100),
+            getPersonalRankings(),
             getTotalPersonalCount(),
           ]);
           setPersonalRankings(rankings);
@@ -42,7 +43,7 @@ const RankingPage = () => {
           }
         } else {
           const [rankings, totalCount] = await Promise.all([
-            getGroupRankings(100),
+            getGroupRankings(),
             getTotalGroupCount(),
           ]);
           setGroupRankings(rankings);
@@ -53,7 +54,7 @@ const RankingPage = () => {
           }
         }
       } catch (error) {
-        console.error("랭킹 데이터 로드 오류:", error);
+        logError("랭킹 데이터 로드 오류:", error);
       } finally {
         setIsLoading(false);
       }

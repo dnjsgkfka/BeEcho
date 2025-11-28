@@ -2,6 +2,7 @@ import React from "react";
 import ShareCard from "./ShareCard";
 import useShareCard from "../../hooks/useShareCard";
 import { useToast } from "../../contexts/ToastContext";
+import { logError } from "../../utils/logger";
 import "../../styles/share-modal.css";
 
 const ShareModal = ({ isOpen, onClose, user, insights, achievements }) => {
@@ -16,7 +17,7 @@ const ShareModal = ({ isOpen, onClose, user, insights, achievements }) => {
       toast.success("이미지가 공유되었습니다.");
     } catch (error) {
       toast.error("공유 중 오류가 발생했습니다. 다시 시도해주세요.");
-      console.error(error);
+      logError(error);
     } finally {
       setIsSharing(false);
     }

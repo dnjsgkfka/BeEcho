@@ -3,6 +3,7 @@ import "../../styles/group-modal.css";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { joinGroup } from "../../services/groups";
+import { logError } from "../../utils/logger";
 
 const JoinGroupModal = ({ isOpen, onClose, onSuccess }) => {
   const { user } = useAuth();
@@ -42,7 +43,7 @@ const JoinGroupModal = ({ isOpen, onClose, onSuccess }) => {
         onSuccess(result);
       }
     } catch (error) {
-      console.error("그룹 참여 오류:", error);
+      logError("그룹 참여 오류:", error);
       setError(error.message || "그룹 참여에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setIsJoining(false);

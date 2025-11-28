@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import "../styles/login.css";
 import { useAuth } from "../contexts/AuthContext";
 import { GoogleIcon } from "../components/icons";
+import { getFirebaseErrorMessage } from "../utils/errors";
+import { logError } from "../utils/logger";
 
 const LoginPage = () => {
   const {
     signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,
-    resetPassword,
     loading,
   } = useAuth();
   const [mode, setMode] = useState("login"); // "login" or "signup"
@@ -18,36 +19,9 @@ const LoginPage = () => {
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [showResetPassword, setShowResetPassword] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
 
   const getErrorMessage = (error) => {
-    const errorCode = error.code;
-    switch (errorCode) {
-      case "auth/user-not-found":
-        return "등록되지 않은 이메일입니다.";
-      case "auth/wrong-password":
-        return "비밀번호가 올바르지 않습니다.";
-      case "auth/email-already-in-use":
-        return "이미 사용 중인 이메일입니다.";
-      case "auth/weak-password":
-        return "비밀번호는 6자 이상이어야 합니다.";
-      case "auth/invalid-email":
-        return "올바른 이메일 형식이 아닙니다.";
-      case "auth/too-many-requests":
-        return "너무 많은 시도가 있었습니다. 잠시 후 다시 시도해주세요.";
-      case "auth/unauthorized-domain":
-        return "이 도메인에서 로그인할 수 없습니다. 관리자에게 문의해주세요.";
-      case "auth/popup-blocked":
-        return "팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용해주세요.";
-      case "auth/popup-closed-by-user":
-        return "로그인 창이 닫혔습니다.";
-      default:
-        if (error.message?.includes("redirect_uri")) {
-          return "로그인 설정 오류가 발생했습니다. 관리자에게 문의해주세요.";
-        }
-        return "오류가 발생했습니다. 다시 시도해주세요.";
-    }
+    return getFirebaseErrorMessage(error, "오류가 발생했습니다. 다시 시도해주세요.");
   };
 
   const handleGoogleSignIn = async () => {
@@ -57,7 +31,7 @@ const LoginPage = () => {
     try {
       await signInWithGoogle();
     } catch (err) {
-      console.error("로그인 오류:", err);
+      logError("로그인 오류:", err);
       setError("로그인에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setIsLoading(false);
@@ -76,26 +50,7 @@ const LoginPage = () => {
         await signUpWithEmail(email, password, name);
       }
     } catch (err) {
-      console.error("인증 오류:", err);
-      setError(getErrorMessage(err));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await resetPassword(resetEmail);
-      setError(null);
-      alert("비밀번호 재설정 이메일을 발송했습니다. 이메일을 확인해주세요.");
-      setShowResetPassword(false);
-      setResetEmail("");
-    } catch (err) {
-      console.error("비밀번호 재설정 오류:", err);
+      logError("인증 오류:", err);
       setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
@@ -108,58 +63,6 @@ const LoginPage = () => {
         <div className="login-loading">
           <div className="login-spinner"></div>
           <p>로딩 중...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (showResetPassword) {
-    return (
-      <div className="login-page">
-        <div className="login-container">
-          <div className="login-header">
-            <div className="login-logo">🌱</div>
-            <h1>비밀번호 재설정</h1>
-            <p className="login-subtitle">이메일을 입력하세요</p>
-          </div>
-
-          <form className="login-content" onSubmit={handleResetPassword}>
-            <div className="login-form-field">
-              <label htmlFor="reset-email">이메일</label>
-              <input
-                id="reset-email"
-                type="email"
-                value={resetEmail}
-                onChange={(e) => setResetEmail(e.target.value)}
-                placeholder="이메일을 입력하세요"
-                required
-                disabled={isLoading}
-              />
-            </div>
-
-            {error && <p className="login-error">{error}</p>}
-
-            <div className="login-form-actions">
-              <button
-                type="button"
-                className="login-button login-button-secondary"
-                onClick={() => {
-                  setShowResetPassword(false);
-                  setError(null);
-                }}
-                disabled={isLoading}
-              >
-                취소
-              </button>
-              <button
-                type="submit"
-                className="login-button login-button-primary"
-                disabled={isLoading || !resetEmail}
-              >
-                {isLoading ? "전송 중..." : "재설정 이메일 보내기"}
-              </button>
-            </div>
-          </form>
         </div>
       </div>
     );
@@ -298,15 +201,6 @@ const LoginPage = () => {
                     minLength={6}
                     disabled={isLoading}
                   />
-                  {mode === "login" && (
-                    <button
-                      type="button"
-                      className="login-forgot-password"
-                      onClick={() => setShowResetPassword(true)}
-                    >
-                      비밀번호를 잊으셨나요?
-                    </button>
-                  )}
                 </div>
 
                 {error && <p className="login-error">{error}</p>}

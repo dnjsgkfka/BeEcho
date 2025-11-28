@@ -5,8 +5,16 @@ import { ReactComponent as LogoIcon } from "../icons/LogoIcon.svg";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { uploadProfileImage, deleteProfileImage } from "../../services/profile";
+import { logError } from "../../utils/logger";
 
-const AppHeader = ({ userName, lp, streak, photoURL, onUpdateName, onUpdatePhoto }) => {
+const AppHeader = ({
+  userName,
+  lp,
+  streak,
+  photoURL,
+  onUpdateName,
+  onUpdatePhoto,
+}) => {
   const { logout, deleteAccount, user } = useAuth();
   const toast = useToast();
   const [isSettingsOpen, setSettingsOpen] = useState(false);
@@ -36,7 +44,7 @@ const AppHeader = ({ userName, lp, streak, photoURL, onUpdateName, onUpdatePhoto
       setSettingsOpen(false);
       toast.success("닉네임이 변경되었습니다.");
     } catch (error) {
-      console.error("이름 수정 오류:", error);
+      logError("이름 수정 오류:", error);
       toast.error("이름 수정 중 오류가 발생했습니다. 다시 시도해주세요.");
     }
   };
@@ -63,7 +71,7 @@ const AppHeader = ({ userName, lp, streak, photoURL, onUpdateName, onUpdatePhoto
     try {
       setIsUploading(true);
       const reader = new FileReader();
-      
+
       reader.onload = async (e) => {
         try {
           const imageDataUrl = e.target.result;
@@ -71,8 +79,10 @@ const AppHeader = ({ userName, lp, streak, photoURL, onUpdateName, onUpdatePhoto
           await onUpdatePhoto?.({ photoURL: downloadURL });
           toast.success("프로필 사진이 변경되었습니다.");
         } catch (error) {
-          console.error("프로필 사진 업로드 오류:", error);
-          toast.error("프로필 사진 업로드 중 오류가 발생했습니다. 다시 시도해주세요.");
+          logError("프로필 사진 업로드 오류:", error);
+          toast.error(
+            "프로필 사진 업로드 중 오류가 발생했습니다. 다시 시도해주세요."
+          );
         } finally {
           setIsUploading(false);
         }
@@ -85,7 +95,7 @@ const AppHeader = ({ userName, lp, streak, photoURL, onUpdateName, onUpdatePhoto
 
       reader.readAsDataURL(file);
     } catch (error) {
-      console.error("프로필 사진 처리 오류:", error);
+      logError("프로필 사진 처리 오류:", error);
       setIsUploading(false);
       toast.error("프로필 사진 처리 중 오류가 발생했습니다.");
     }
@@ -107,8 +117,10 @@ const AppHeader = ({ userName, lp, streak, photoURL, onUpdateName, onUpdatePhoto
       await onUpdatePhoto?.({ photoURL: null });
       toast.success("프로필 사진이 삭제되었습니다.");
     } catch (error) {
-      console.error("프로필 사진 삭제 오류:", error);
-      toast.error("프로필 사진 삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
+      logError("프로필 사진 삭제 오류:", error);
+      toast.error(
+        "프로필 사진 삭제 중 오류가 발생했습니다. 다시 시도해주세요."
+      );
     } finally {
       setIsDeleting(false);
     }
@@ -205,7 +217,7 @@ const AppHeader = ({ userName, lp, streak, photoURL, onUpdateName, onUpdatePhoto
                     await logout();
                     toast.success("로그아웃되었습니다.");
                   } catch (error) {
-                    console.error("로그아웃 오류:", error);
+                    logError("로그아웃 오류:", error);
                     toast.error("로그아웃 중 오류가 발생했습니다.");
                   }
                 }
@@ -231,7 +243,7 @@ const AppHeader = ({ userName, lp, streak, photoURL, onUpdateName, onUpdatePhoto
                       await deleteAccount();
                       toast.success("회원탈퇴가 완료되었습니다.");
                     } catch (error) {
-                      console.error("회원탈퇴 오류:", error);
+                      logError("회원탈퇴 오류:", error);
                       toast.error(
                         error.message ||
                           "회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요."

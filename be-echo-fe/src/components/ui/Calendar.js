@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import "../../styles/calendar.css";
+import { getLocalDateString } from "../../utils/date";
 
 const Calendar = ({ verifiedDates = [] }) => {
   const today = new Date();
@@ -16,21 +17,16 @@ const Calendar = ({ verifiedDates = [] }) => {
   const verifiedDateSet = useMemo(() => {
     return new Set(
       verifiedDates.map((date) => {
-        const d = new Date(date);
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-          2,
-          "0"
-        )}-${String(d.getDate()).padStart(2, "0")}`;
+        return getLocalDateString(new Date(date));
       })
     );
   }, [verifiedDates]);
 
   // 날짜가 인증된 날인지 확인
   const isVerified = (day) => {
-    const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(
-      2,
-      "0"
-    )}-${String(day).padStart(2, "0")}`;
+    const dateKey = getLocalDateString(
+      new Date(currentYear, currentMonth, day)
+    );
     return verifiedDateSet.has(dateKey);
   };
 
@@ -95,7 +91,9 @@ const Calendar = ({ verifiedDates = [] }) => {
               } ${todayClass}`}
             >
               <span className="calendar-day-number">{day}</span>
-              {verified && <span className="calendar-day-badge" aria-label="인증 완료" />}
+              {verified && (
+                <span className="calendar-day-badge" aria-label="인증 완료" />
+              )}
             </div>
           );
         })}

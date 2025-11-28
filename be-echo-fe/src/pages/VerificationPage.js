@@ -4,6 +4,7 @@ import { CameraIcon, InfoIcon } from "../components/icons";
 import { useAppData } from "../contexts/AppDataContext";
 import { useAuth } from "../contexts/AuthContext";
 import useTumblerVerification from "../hooks/useTumblerVerification";
+import { log, logError, logWarn } from "../utils/logger";
 import {
   uploadVerificationImage,
   saveVerification,
@@ -135,7 +136,7 @@ const VerificationPage = () => {
             ? userDoc.data().groupId || null
             : authUser.groupId || null;
 
-          console.log("인증 저장 시 groupId:", {
+          log("인증 저장 시 groupId:", {
             authUserGroupId: authUser.groupId,
             latestGroupId,
             userId: authUser.id,
@@ -158,7 +159,7 @@ const VerificationPage = () => {
           await refreshUser();
           setSuccessImageDataUrl(imageToSave);
         } catch (error) {
-          console.error("인증 저장 오류:", error);
+          logError("인증 저장 오류:", error);
           setVerificationError(
             error.message || "인증 저장 중 오류가 발생했습니다."
           );
@@ -227,7 +228,7 @@ const VerificationPage = () => {
         // 사진을 찍는 순간 팝업 표시
         setIsShareModalOpen(true);
       } catch (readError) {
-        console.warn("이미지를 불러오는 중 문제가 발생했어요.", readError);
+        logWarn("이미지를 불러오는 중 문제가 발생했어요.", readError);
         setPendingImage(null);
         pendingImageRef.current = null;
       }
