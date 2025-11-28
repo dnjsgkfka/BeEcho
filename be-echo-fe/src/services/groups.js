@@ -113,6 +113,27 @@ export const createGroup = async (
       isGroupLeader: true,
     });
 
+    // 기존 인증 데이터의 groupId 업데이트 (오늘 인증 포함)
+    const verificationsRef = collection(db, "verifications");
+    const userVerificationsQuery = query(
+      verificationsRef,
+      where("userId", "==", leaderId),
+      where("success", "==", true)
+    );
+    const verificationsSnapshot = await getDocs(userVerificationsQuery);
+    
+    if (!verificationsSnapshot.empty) {
+      const batch = writeBatch(db);
+      verificationsSnapshot.docs.forEach((verificationDoc) => {
+        const verificationData = verificationDoc.data();
+        // groupId가 null이거나 다른 그룹인 경우에만 업데이트
+        if (!verificationData.groupId) {
+          batch.update(verificationDoc.ref, { groupId: groupId });
+        }
+      });
+      await batch.commit();
+    }
+
     return {
       groupId: groupId,
       code: code,
@@ -206,6 +227,27 @@ export const joinGroup = async (code, userId, userName, userPhotoURL) => {
       groupId: groupId,
       isGroupLeader: false,
     });
+
+    // 기존 인증 데이터의 groupId 업데이트 (오늘 인증 포함)
+    const verificationsRef = collection(db, "verifications");
+    const userVerificationsQuery = query(
+      verificationsRef,
+      where("userId", "==", userId),
+      where("success", "==", true)
+    );
+    const verificationsSnapshot = await getDocs(userVerificationsQuery);
+    
+    if (!verificationsSnapshot.empty) {
+      const batch = writeBatch(db);
+      verificationsSnapshot.docs.forEach((verificationDoc) => {
+        const verificationData = verificationDoc.data();
+        // groupId가 null이거나 다른 그룹인 경우에만 업데이트
+        if (!verificationData.groupId) {
+          batch.update(verificationDoc.ref, { groupId: groupId });
+        }
+      });
+      await batch.commit();
+    }
 
     const groupRef = doc(db, "groups", groupId);
     await updateDoc(groupRef, {
