@@ -1,8 +1,4 @@
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-} from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import {
   collection,
   doc,
@@ -17,6 +13,9 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { storage, db } from "../config/firebase";
+import { getLocalDateString } from "../utils/date";
+import { VERIFICATION_LP, GROUP_BONUS_LP } from "../constants/app";
+import { logError } from "../utils/logger";
 
 /**
  * DataURL을 Blob으로 변환
@@ -51,7 +50,7 @@ export const uploadVerificationImage = async (imageDataUrl, userId) => {
     const downloadURL = await getDownloadURL(storageRef);
     return downloadURL;
   } catch (error) {
-    console.error("이미지 업로드 오류:", error);
+    logError("이미지 업로드 오류:", error);
     throw error;
   }
 };
@@ -77,7 +76,7 @@ export const checkTodayVerification = async (userId) => {
     const snapshot = await getDocs(q);
     return !snapshot.empty;
   } catch (error) {
-    console.error("오늘 인증 확인 오류:", error);
+    logError("오늘 인증 확인 오류:", error);
     return false;
   }
 };
@@ -88,10 +87,6 @@ export const checkTodayVerification = async (userId) => {
  * @param {string} lastSuccessDate - 마지막 성공 날짜 (ISO string)
  * @returns {number} 업데이트된 스트릭
  */
-// 로컬 시간대 기준으로 날짜 문자열 생성
-const getLocalDateString = (date) => {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-};
 
 const calculateStreak = (currentStreak, lastSuccessDate) => {
   const today = new Date();
@@ -167,7 +162,7 @@ export const saveVerification = async ({
       );
       const newBestStreak = Math.max(newStreak, userData.bestStreak || 0);
       const newTotalSuccessCount = (userData.totalSuccessCount || 0) + 1;
-      const newLP = (userData.lp || 0) + 10;
+      const newLP = (userData.lp || 0) + VERIFICATION_LP;
 
       await updateDoc(userRef, {
         lp: newLP,
@@ -197,7 +192,7 @@ export const saveVerification = async ({
       ...verificationData,
     };
   } catch (error) {
-    console.error("인증 기록 저장 오류:", error);
+    logError("인증 기록 저장 오류:", error);
     throw error;
   }
 };
@@ -254,7 +249,7 @@ const checkAndGiveGroupBonus = async (groupId, today) => {
           membersSnapshot.docs.forEach((memberDoc) => {
             const memberId = memberDoc.id;
             const memberData = memberDoc.data();
-            const newMemberLP = (memberData.lp || 0) + 30;
+            const newMemberLP = (memberData.lp || 0) + GROUP_BONUS_LP;
 
             const memberRef = doc(db, "groups", groupId, "members", memberId);
             batch.update(memberRef, { lp: newMemberLP });
@@ -264,7 +259,7 @@ const checkAndGiveGroupBonus = async (groupId, today) => {
               getDoc(userRef).then((userDoc) => {
                 if (userDoc.exists()) {
                   const userData = userDoc.data();
-                  const newUserLP = (userData.lp || 0) + 30;
+                  const newUserLP = (userData.lp || 0) + GROUP_BONUS_LP;
                   batch.update(userRef, { lp: newUserLP });
                 }
               })
@@ -280,7 +275,6 @@ const checkAndGiveGroupBonus = async (groupId, today) => {
       }
     }
   } catch (error) {
-    console.error("그룹 보너스 확인 오류:", error);
+    logError("그룹 보너스 확인 오류:", error);
   }
 };
-

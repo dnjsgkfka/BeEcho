@@ -1,3 +1,5 @@
+import { logWarn } from "../utils/logger";
+
 const STORAGE_KEY_PREFIX = "be-echo:state:";
 
 const getStorageKey = (userId) => {
@@ -20,7 +22,7 @@ export const loadState = (userId) => {
     }
     return JSON.parse(raw);
   } catch (error) {
-    console.warn("로컬 스토리지 상태를 읽는 중 문제가 발생했어요.", error);
+    logWarn("로컬 스토리지 상태를 읽는 중 문제가 발생했어요.", error);
     return null;
   }
 };
@@ -34,7 +36,7 @@ export const saveState = (state, userId) => {
     const storageKey = getStorageKey(userId);
     window.localStorage.setItem(storageKey, JSON.stringify(state));
   } catch (error) {
-    console.warn("로컬 스토리지에 상태를 저장하지 못했어요.", error);
+    logWarn("로컬 스토리지에 상태를 저장하지 못했어요.", error);
   }
 };
 
@@ -58,6 +60,6 @@ export const clearAllStates = () => {
       }
     });
   } catch (error) {
-    console.warn("로컬 스토리지 정리 중 문제가 발생했어요.", error);
+    logWarn("로컬 스토리지 정리 중 문제가 발생했어요.", error);
   }
 };

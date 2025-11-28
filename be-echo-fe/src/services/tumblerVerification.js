@@ -1,3 +1,5 @@
+import { logWarn } from "../utils/logger";
+
 const MOCK_DELAY = 900;
 const YOLO_BASE_URL =
   process.env.REACT_APP_TUMBLER_BASE_URL ||
@@ -89,13 +91,10 @@ export const verifyTumblerImage = async (file) => {
     } catch (error) {
       // 404나 기타 오류면 다음 후보 경로로 시도합니다.
       // eslint-disable-next-line no-console
-      console.warn(`YOLO 엔드포인트 ${path} 호출 실패`, error);
+      logWarn(`YOLO 엔드포인트 ${path} 호출 실패`, error);
     }
   }
 
-  console.warn(
-    "사용 가능한 YOLO 엔드포인트를 찾지 못해 목업 데이터를 반환합니다."
-  );
+  logWarn("사용 가능한 YOLO 엔드포인트를 찾지 못해 목업 데이터를 반환합니다.");
   return mockResponse(file, dataUrl);
 };
-
