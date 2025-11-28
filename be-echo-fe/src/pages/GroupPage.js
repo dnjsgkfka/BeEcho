@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/group.css";
 import CreateGroupModal from "../components/group/CreateGroupModal";
 import JoinGroupModal from "../components/group/JoinGroupModal";
@@ -25,33 +25,12 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
-
-const formatTimeAgo = (timestamp) => {
-  if (!timestamp) return "";
-
-  let date;
-  if (timestamp?.toDate) {
-    date = timestamp.toDate();
-  } else if (timestamp?.seconds) {
-    date = new Date(timestamp.seconds * 1000);
-  } else if (typeof timestamp === "string") {
-    date = new Date(timestamp);
-  } else {
-    return "";
-  }
-
-  const now = new Date();
-  const diffMs = now - date;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return "방금 전";
-  if (diffMins < 60) return `${diffMins}분 전`;
-  if (diffHours < 24) return `${diffHours}시간 전`;
-  if (diffDays < 7) return `${diffDays}일 전`;
-  return date.toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
-};
+import {
+  formatTimeAgo,
+  getLocalDateString,
+  getTodayDateString,
+} from "../utils/date";
+import { log, logError, logWarn } from "../utils/logger";
 
 const GroupPage = () => {
   const { user: appDataUser } = useAppData();
@@ -95,7 +74,7 @@ const GroupPage = () => {
         setIsLoading(false);
       },
       (error) => {
-        console.error("그룹 정보 실시간 업데이트 오류:", error);
+        logError("그룹 정보 실시간 업데이트 오류:", error);
         setCurrentGroup(null);
         setIsLoading(false);
       }
@@ -112,14 +91,21 @@ const GroupPage = () => {
         setGroupMembers(members);
       },
       (error) => {
-        console.error("그룹 멤버 실시간 업데이트 오류:", error);
+        logError("그룹 멤버 실시간 업데이트 오류:", error);
         setGroupMembers([]);
       }
     );
 
+    // 로컬 시간대 기준으로 오늘 날짜 계산 (UTC 문제 방지)
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayDateStr = today.toISOString().split("T")[0];
+    const todayDateStr = getTodayDateString();
+
+    log("그룹 인증 쿼리 설정:", {
+      groupId,
+      todayDateStr,
+      groupIdType: typeof groupId,
+      groupIdValue: groupId,
+    });
 
     const verificationsRef = collection(db, "verifications");
     const todayTimestamp = Timestamp.fromDate(today);
@@ -127,6 +113,14 @@ const GroupPage = () => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowTimestamp = Timestamp.fromDate(tomorrow);
 
+    // groupId가 null이 아닌 경우에만 쿼리 실행
+    if (!groupId) {
+      logWarn("groupId가 없어서 인증 쿼리를 실행할 수 없습니다.");
+      setTodayVerifications([]);
+      return;
+    }
+
+    // 보너스 LP 로직과 동일한 쿼리 사용
     const verificationsQuery = query(
       verificationsRef,
       where("groupId", "==", groupId),
@@ -134,21 +128,77 @@ const GroupPage = () => {
       where("date", "==", todayDateStr)
     );
 
+    log("인증 쿼리 시작:", {
+      groupId,
+      todayDateStr,
+      queryType: "groupId + success + date",
+    });
+
     const unsubscribeVerifications = onSnapshot(
       verificationsQuery,
       (verificationsSnapshot) => {
-        const verifications = verificationsSnapshot.docs.map((doc) => {
+        // 쿼리에서 이미 오늘 날짜로 필터링된 결과를 받음
+        const todayVerifications = verificationsSnapshot.docs.map((doc) => {
           const data = doc.data();
           return {
             id: doc.id,
             ...data,
           };
         });
-        console.log("오늘의 인증 데이터:", verifications);
-        setTodayVerifications(verifications);
+
+        log("오늘의 인증 데이터:", {
+          count: todayVerifications.length,
+          todayDateStr,
+          groupId,
+          verifications: todayVerifications.map((v) => ({
+            id: v.id,
+            userId: v.userId,
+            userName: v.userName,
+            groupId: v.groupId,
+            date: v.date,
+            success: v.success,
+            hasImageUrl: !!(v.imageUrl || v.imageDataUrl || v.image_url),
+            imageUrl: v.imageUrl || v.imageDataUrl || v.image_url,
+          })),
+          queryParams: {
+            groupId,
+            todayDateStr,
+            success: true,
+          },
+        });
+
+        // 이미지 URL이 있는 오늘의 인증만 필터링
+        const validVerifications = todayVerifications.filter((v) => {
+          const hasImage = !!(v.imageUrl || v.imageDataUrl || v.image_url);
+          if (!hasImage) {
+            logWarn("이미지 URL이 없는 인증:", {
+              id: v.id,
+              userId: v.userId,
+              userName: v.userName,
+              date: v.date,
+            });
+          }
+          return hasImage;
+        });
+
+        log("유효한 인증 데이터:", {
+          count: validVerifications.length,
+          validVerifications: validVerifications.map((v) => ({
+            id: v.id,
+            userName: v.userName,
+            imageUrl: v.imageUrl || v.imageDataUrl || v.image_url,
+          })),
+        });
+
+        setTodayVerifications(validVerifications);
       },
       (error) => {
-        console.error("인증 사진 실시간 업데이트 오류:", error);
+        logError("인증 사진 실시간 업데이트 오류:", error);
+        logError("쿼리 파라미터:", {
+          groupId,
+          todayDateStr,
+          success: true,
+        });
         setTodayVerifications([]);
       }
     );
@@ -171,7 +221,7 @@ const GroupPage = () => {
         setCopied(false);
       }, 2000);
     } catch (error) {
-      console.error("복사 실패:", error);
+      logError("복사 실패:", error);
       // 폴백: 텍스트 영역을 사용한 복사
       const textArea = document.createElement("textarea");
       textArea.value = code;
@@ -206,9 +256,8 @@ const GroupPage = () => {
     <div className="group-page">
       {!currentGroup ? (
         <div className="group-empty-state">
-          <div className="group-empty-icon">👥</div>
-          <h3>그룹에 참여해보세요!</h3>
-          <p>함께 인증하고 경쟁하며 환경 보호에 동참해요</p>
+          <h3>그룹에 참여해보세요</h3>
+          <p>함께 인증하고 경쟁하며 환경 보호에 동참하세요</p>
           <div className="group-empty-actions">
             <button
               className="group-button group-button-primary"
@@ -278,7 +327,27 @@ const GroupPage = () => {
               </div>
               <div className="stat-pill total">
                 <p>오늘 인증</p>
-                <strong>{todayVerifications.length}명</strong>
+                <strong>
+                  {(() => {
+                    const todayStr = getTodayDateString();
+                    // 멤버 목록에서 오늘 인증한 멤버 수 계산
+                    const todayVerifiedMembers = groupMembers.filter(
+                      (member) => {
+                        if (!member.lastSuccessDate) return false;
+                        const lastDateStr = getLocalDateString(
+                          new Date(member.lastSuccessDate)
+                        );
+                        return lastDateStr === todayStr;
+                      }
+                    );
+                    // 인증 데이터와 멤버 데이터 중 더 큰 값 사용
+                    return Math.max(
+                      todayVerifications.length,
+                      todayVerifiedMembers.length
+                    );
+                  })()}
+                  명
+                </strong>
               </div>
               <div
                 className="stat-pill rank"
@@ -350,7 +419,7 @@ const GroupPage = () => {
                         verification.userName || verification.name || "사용자"
                       }의 인증`}
                       onError={(e) => {
-                        console.error("이미지 로드 실패:", verification);
+                        logError("이미지 로드 실패:", verification);
                         e.target.style.display = "none";
                       }}
                     />
@@ -400,7 +469,7 @@ const GroupPage = () => {
                 setGroupMembers(members);
               }
             } catch (error) {
-              console.error("그룹 정보 로드 오류:", error);
+              logError("그룹 정보 로드 오류:", error);
             }
           }
         }}
@@ -423,7 +492,7 @@ const GroupPage = () => {
                 setGroupMembers(members);
               }
             } catch (error) {
-              console.error("그룹 정보 로드 오류:", error);
+              logError("그룹 정보 로드 오류:", error);
             }
           }
         }}

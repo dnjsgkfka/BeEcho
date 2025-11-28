@@ -4,11 +4,14 @@ import { CameraIcon, InfoIcon } from "../components/icons";
 import { useAppData } from "../contexts/AppDataContext";
 import { useAuth } from "../contexts/AuthContext";
 import useTumblerVerification from "../hooks/useTumblerVerification";
+import { log, logError, logWarn } from "../utils/logger";
 import {
   uploadVerificationImage,
   saveVerification,
   checkTodayVerification,
 } from "../services/verifications";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../config/firebase";
 
 const readFileAsDataUrl = (file) =>
   new Promise((resolve, reject) => {
@@ -127,6 +130,18 @@ const VerificationPage = () => {
             return;
           }
 
+          const userDocRef = doc(db, "users", authUser.id);
+          const userDoc = await getDoc(userDocRef);
+          const latestGroupId = userDoc.exists()
+            ? userDoc.data().groupId || null
+            : authUser.groupId || null;
+
+          log("인증 저장 시 groupId:", {
+            authUserGroupId: authUser.groupId,
+            latestGroupId,
+            userId: authUser.id,
+          });
+
           const imageUrl = await uploadVerificationImage(
             imageToSave,
             authUser.id
@@ -135,7 +150,7 @@ const VerificationPage = () => {
           await saveVerification({
             userId: authUser.id,
             userName: authUser.name || authUser.username || "사용자",
-            groupId: authUser.groupId || null,
+            groupId: latestGroupId,
             imageUrl,
             success: true,
             confidence: result.confidence || null,
@@ -144,7 +159,7 @@ const VerificationPage = () => {
           await refreshUser();
           setSuccessImageDataUrl(imageToSave);
         } catch (error) {
-          console.error("인증 저장 오류:", error);
+          logError("인증 저장 오류:", error);
           setVerificationError(
             error.message || "인증 저장 중 오류가 발생했습니다."
           );
@@ -213,7 +228,7 @@ const VerificationPage = () => {
         // 사진을 찍는 순간 팝업 표시
         setIsShareModalOpen(true);
       } catch (readError) {
-        console.warn("이미지를 불러오는 중 문제가 발생했어요.", readError);
+        logWarn("이미지를 불러오는 중 문제가 발생했어요.", readError);
         setPendingImage(null);
         pendingImageRef.current = null;
       }

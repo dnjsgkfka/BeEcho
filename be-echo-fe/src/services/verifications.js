@@ -1,8 +1,4 @@
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-} from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import {
   collection,
   doc,
@@ -17,6 +13,9 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { storage, db } from "../config/firebase";
+import { getLocalDateString } from "../utils/date";
+import { VERIFICATION_LP, GROUP_BONUS_LP } from "../constants/app";
+import { logError } from "../utils/logger";
 
 /**
  * DataURL을 Blob으로 변환
@@ -51,7 +50,7 @@ export const uploadVerificationImage = async (imageDataUrl, userId) => {
     const downloadURL = await getDownloadURL(storageRef);
     return downloadURL;
   } catch (error) {
-    console.error("이미지 업로드 오류:", error);
+    logError("이미지 업로드 오류:", error);
     throw error;
   }
 };
@@ -64,23 +63,20 @@ export const uploadVerificationImage = async (imageDataUrl, userId) => {
 export const checkTodayVerification = async (userId) => {
   try {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const todayStr = getLocalDateString(today);
 
     const verificationsRef = collection(db, "verifications");
     const q = query(
       verificationsRef,
       where("userId", "==", userId),
-      where("verifiedAt", ">=", Timestamp.fromDate(today)),
-      where("verifiedAt", "<", Timestamp.fromDate(tomorrow)),
+      where("date", "==", todayStr),
       where("success", "==", true)
     );
 
     const snapshot = await getDocs(q);
     return !snapshot.empty;
   } catch (error) {
-    console.error("오늘 인증 확인 오류:", error);
+    logError("오늘 인증 확인 오류:", error);
     return false;
   }
 };
@@ -91,22 +87,21 @@ export const checkTodayVerification = async (userId) => {
  * @param {string} lastSuccessDate - 마지막 성공 날짜 (ISO string)
  * @returns {number} 업데이트된 스트릭
  */
+
 const calculateStreak = (currentStreak, lastSuccessDate) => {
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = getLocalDateString(today);
 
   if (!lastSuccessDate) {
     return 1;
   }
 
   const lastDate = new Date(lastSuccessDate);
-  lastDate.setHours(0, 0, 0, 0);
-  const lastDateStr = lastDate.toISOString().split("T")[0];
+  const lastDateStr = getLocalDateString(lastDate);
 
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split("T")[0];
+  const yesterdayStr = getLocalDateString(yesterday);
 
   if (lastDateStr === yesterdayStr) {
     return currentStreak + 1;
@@ -139,6 +134,8 @@ export const saveVerification = async ({
   try {
     const now = new Date();
     const verificationRef = doc(collection(db, "verifications"));
+    // 로컬 시간대 기준으로 날짜 저장
+    const dateStr = getLocalDateString(now);
     const verificationData = {
       userId,
       userName: userName || "사용자",
@@ -147,7 +144,7 @@ export const saveVerification = async ({
       success: Boolean(success),
       confidence: confidence || null,
       verifiedAt: serverTimestamp(),
-      date: now.toISOString().split("T")[0],
+      date: dateStr,
       createdAt: serverTimestamp(),
     };
 
@@ -165,7 +162,7 @@ export const saveVerification = async ({
       );
       const newBestStreak = Math.max(newStreak, userData.bestStreak || 0);
       const newTotalSuccessCount = (userData.totalSuccessCount || 0) + 1;
-      const newLP = (userData.lp || 0) + 10;
+      const newLP = (userData.lp || 0) + VERIFICATION_LP;
 
       await updateDoc(userRef, {
         lp: newLP,
@@ -195,7 +192,7 @@ export const saveVerification = async ({
       ...verificationData,
     };
   } catch (error) {
-    console.error("인증 기록 저장 오류:", error);
+    logError("인증 기록 저장 오류:", error);
     throw error;
   }
 };
@@ -208,7 +205,7 @@ export const saveVerification = async ({
  */
 const checkAndGiveGroupBonus = async (groupId, today) => {
   try {
-    const todayStr = today.toISOString().split("T")[0];
+    const todayStr = getLocalDateString(today);
     const todayTimestamp = Timestamp.fromDate(today);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -252,7 +249,7 @@ const checkAndGiveGroupBonus = async (groupId, today) => {
           membersSnapshot.docs.forEach((memberDoc) => {
             const memberId = memberDoc.id;
             const memberData = memberDoc.data();
-            const newMemberLP = (memberData.lp || 0) + 30;
+            const newMemberLP = (memberData.lp || 0) + GROUP_BONUS_LP;
 
             const memberRef = doc(db, "groups", groupId, "members", memberId);
             batch.update(memberRef, { lp: newMemberLP });
@@ -262,7 +259,7 @@ const checkAndGiveGroupBonus = async (groupId, today) => {
               getDoc(userRef).then((userDoc) => {
                 if (userDoc.exists()) {
                   const userData = userDoc.data();
-                  const newUserLP = (userData.lp || 0) + 30;
+                  const newUserLP = (userData.lp || 0) + GROUP_BONUS_LP;
                   batch.update(userRef, { lp: newUserLP });
                 }
               })
@@ -278,7 +275,6 @@ const checkAndGiveGroupBonus = async (groupId, today) => {
       }
     }
   } catch (error) {
-    console.error("그룹 보너스 확인 오류:", error);
+    logError("그룹 보너스 확인 오류:", error);
   }
 };
-

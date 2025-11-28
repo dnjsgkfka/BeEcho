@@ -1,10 +1,12 @@
 import { collection, query, getDocs, orderBy, limit } from "firebase/firestore";
 import { db } from "../config/firebase";
+import { DEFAULT_RANKING_LIMIT, MAX_RANKING_LIMIT } from "../constants/app";
+import { logError } from "../utils/logger";
 
 /**
  * 개인 랭킹
  */
-export const getPersonalRankings = async (limitCount = 100) => {
+export const getPersonalRankings = async (limitCount = DEFAULT_RANKING_LIMIT) => {
   try {
     const usersRef = collection(db, "users");
     const q = query(usersRef, orderBy("lp", "desc"), limit(limitCount));
@@ -40,7 +42,7 @@ export const getPersonalRankings = async (limitCount = 100) => {
 
     return rankings;
   } catch (error) {
-    console.error("개인 랭킹 가져오기 오류:", error);
+    logError("개인 랭킹 가져오기 오류:", error);
     return [];
   }
 };
@@ -48,7 +50,7 @@ export const getPersonalRankings = async (limitCount = 100) => {
 /**
  * 그룹 랭킹
  */
-export const getGroupRankings = async (limitCount = 100) => {
+export const getGroupRankings = async (limitCount = DEFAULT_RANKING_LIMIT) => {
   try {
     const groupsRef = collection(db, "groups");
     const querySnapshot = await getDocs(groupsRef);
@@ -106,7 +108,7 @@ export const getGroupRankings = async (limitCount = 100) => {
 
     return rankings;
   } catch (error) {
-    console.error("그룹 랭킹 가져오기 오류:", error);
+    logError("그룹 랭킹 가져오기 오류:", error);
     return [];
   }
 };
@@ -116,11 +118,11 @@ export const getGroupRankings = async (limitCount = 100) => {
  */
 export const getUserPersonalRank = async (userId) => {
   try {
-    const rankings = await getPersonalRankings(1000);
+    const rankings = await getPersonalRankings(MAX_RANKING_LIMIT);
     const userRanking = rankings.find((r) => r.id === userId);
     return userRanking || null;
   } catch (error) {
-    console.error("사용자 개인 랭킹 찾기 오류:", error);
+    logError("사용자 개인 랭킹 찾기 오류:", error);
     return null;
   }
 };
@@ -130,11 +132,39 @@ export const getUserPersonalRank = async (userId) => {
  */
 export const getGroupRank = async (groupId) => {
   try {
-    const rankings = await getGroupRankings(1000);
+    const rankings = await getGroupRankings(MAX_RANKING_LIMIT);
     const groupRanking = rankings.find((r) => r.id === groupId);
     return groupRanking || null;
   } catch (error) {
-    console.error("그룹 랭킹 찾기 오류:", error);
+    logError("그룹 랭킹 찾기 오류:", error);
     return null;
+  }
+};
+
+/**
+ * 전체 개인 수 가져오기
+ */
+export const getTotalPersonalCount = async () => {
+  try {
+    const usersRef = collection(db, "users");
+    const querySnapshot = await getDocs(usersRef);
+    return querySnapshot.size;
+  } catch (error) {
+    logError("전체 개인 수 가져오기 오류:", error);
+    return 0;
+  }
+};
+
+/**
+ * 전체 그룹 수 가져오기
+ */
+export const getTotalGroupCount = async () => {
+  try {
+    const groupsRef = collection(db, "groups");
+    const querySnapshot = await getDocs(groupsRef);
+    return querySnapshot.size;
+  } catch (error) {
+    logError("전체 그룹 수 가져오기 오류:", error);
+    return 0;
   }
 };

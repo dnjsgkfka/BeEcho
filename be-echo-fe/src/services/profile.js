@@ -5,6 +5,7 @@ import {
   deleteObject,
 } from "firebase/storage";
 import { storage } from "../config/firebase";
+import { logError } from "../utils/logger";
 
 /**
  * DataURL을 Blob으로 변환
@@ -38,7 +39,7 @@ export const uploadProfileImage = async (imageDataUrl, userId) => {
     const downloadURL = await getDownloadURL(storageRef);
     return downloadURL;
   } catch (error) {
-    console.error("프로필 사진 업로드 오류:", error);
+    logError("프로필 사진 업로드 오류:", error);
     throw error;
   }
 };
@@ -55,8 +56,7 @@ export const deleteProfileImage = async (userId) => {
   } catch (error) {
     // 파일이 없어도 에러 무시
     if (error.code !== "storage/object-not-found") {
-      console.error("프로필 사진 삭제 오류:", error);
+      logError("프로필 사진 삭제 오류:", error);
     }
   }
 };
-

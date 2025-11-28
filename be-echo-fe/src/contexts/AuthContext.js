@@ -3,7 +3,6 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
   signOut,
   onAuthStateChanged,
   GoogleAuthProvider,
@@ -26,6 +25,12 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
+import { log, logError, logWarn } from "../utils/logger";
+import {
+  createDefaultUserData,
+  createUserUpdateData,
+  mergeUserData,
+} from "../utils/user";
 
 const AuthContext = createContext({
   user: null,
@@ -33,7 +38,6 @@ const AuthContext = createContext({
   signInWithGoogle: () => Promise.resolve(),
   signInWithEmail: () => Promise.resolve(),
   signUpWithEmail: () => Promise.resolve(),
-  resetPassword: () => Promise.resolve(),
   logout: () => Promise.resolve(),
   deleteAccount: () => Promise.resolve(),
 });
@@ -53,61 +57,16 @@ export const AuthProvider = ({ children }) => {
 
         if (userDoc.exists()) {
           const existingData = userDoc.data();
-          const updates = {};
-
-          if (firebaseUser.displayName) {
-            updates.name = firebaseUser.displayName;
-            updates.username = firebaseUser.displayName;
-          }
-
-          if (firebaseUser.photoURL) {
-            updates.photoURL = firebaseUser.photoURL;
-          }
+          const updates = createUserUpdateData(firebaseUser);
 
           if (Object.keys(updates).length > 0) {
             await setDoc(userDocRef, updates, { merge: true });
           }
 
-          setUser({
-            id: firebaseUser.uid,
-            email: firebaseUser.email,
-            ...existingData,
-            ...updates,
-            name:
-              firebaseUser.displayName ||
-              updates.name ||
-              existingData.name ||
-              "사용자",
-            username:
-              firebaseUser.displayName ||
-              updates.username ||
-              existingData.username ||
-              existingData.name ||
-              "사용자",
-            photoURL:
-              firebaseUser.photoURL ||
-              updates.photoURL ||
-              existingData.photoURL,
-            groupId: existingData.groupId || null,
-            isGroupLeader: existingData.isGroupLeader || false,
-          });
+          setUser(mergeUserData(firebaseUser, existingData, updates));
         } else {
-          const newUserData = {
-            name: firebaseUser.displayName || "사용자",
-            username: firebaseUser.displayName || "사용자", // username 필드도 추가
-            email: firebaseUser.email,
-            photoURL: firebaseUser.photoURL,
-            lp: 0,
-            streakDays: 0,
-            bestStreak: 0,
-            totalSuccessCount: 0,
-            lastSuccessDate: null,
-            createdAt: new Date().toISOString(),
-            groupId: null,
-          };
-
+          const newUserData = createDefaultUserData(firebaseUser);
           await setDoc(userDocRef, newUserData);
-
           setUser({
             id: firebaseUser.uid,
             ...newUserData,
@@ -132,34 +91,18 @@ export const AuthProvider = ({ children }) => {
         const userDocRef = doc(db, "users", result.user.uid);
         const userDoc = await getDoc(userDocRef);
 
-        const updates = {};
-        if (result.user.displayName) {
-          updates.name = result.user.displayName;
-          updates.username = result.user.displayName;
-        }
-        if (result.user.photoURL) {
-          updates.photoURL = result.user.photoURL;
-        }
+        const updates = createUserUpdateData(result.user);
 
         if (Object.keys(updates).length > 0) {
           if (userDoc.exists()) {
             await setDoc(userDocRef, updates, { merge: true });
           } else {
             // 새 사용자인 경우 전체 데이터 생성
-            await setDoc(userDocRef, {
-              name: result.user.displayName || "사용자",
-              username: result.user.displayName || "사용자",
-              email: result.user.email,
-              photoURL: result.user.photoURL,
-              lp: 0,
-              streakDays: 0,
-              bestStreak: 0,
-              totalSuccessCount: 0,
-              lastSuccessDate: null,
-              createdAt: new Date().toISOString(),
-              groupId: null,
+            const newUserData = {
+              ...createDefaultUserData(result.user),
               ...updates,
-            });
+            };
+            await setDoc(userDocRef, newUserData);
           }
         }
       }
@@ -167,10 +110,25 @@ export const AuthProvider = ({ children }) => {
       return result;
     } catch (error) {
       if (error.code === "auth/popup-closed-by-user") {
-        console.log("사용자가 팝업을 닫았습니다.");
+        log("사용자가 팝업을 닫았습니다.");
         return null;
       }
-      console.error("구글 로그인 오류:", error);
+      // Vercel 배포 시 발생할 수 있는 에러에 대한 더 자세한 로깅
+      if (error.code === "auth/unauthorized-domain") {
+        logError(
+          "구글 로그인 오류: 허가되지 않은 도메인입니다. Firebase Console에서 Authorized domains에 현재 도메인을 추가해주세요.",
+          error
+        );
+      } else if (
+        error.message?.includes("redirect_uri_mismatch") ||
+        error.message?.includes("redirect_uri")
+      ) {
+        logError(
+          "구글 로그인 오류: Google Cloud Console에서 Authorized redirect URIs에 현재 도메인을 추가해주세요.",
+          error
+        );
+      }
+      logError("구글 로그인 오류:", error);
       throw error;
     }
   };
@@ -180,7 +138,7 @@ export const AuthProvider = ({ children }) => {
       const result = await signInWithEmailAndPassword(auth, email, password);
       return result;
     } catch (error) {
-      console.error("이메일 로그인 오류:", error);
+      logError("이메일 로그인 오류:", error);
       throw error;
     }
   };
@@ -213,16 +171,7 @@ export const AuthProvider = ({ children }) => {
 
       return result;
     } catch (error) {
-      console.error("회원가입 오류:", error);
-      throw error;
-    }
-  };
-
-  const resetPassword = async (email) => {
-    try {
-      await sendPasswordResetEmail(auth, email);
-    } catch (error) {
-      console.error("비밀번호 재설정 오류:", error);
+      logError("회원가입 오류:", error);
       throw error;
     }
   };
@@ -232,7 +181,7 @@ export const AuthProvider = ({ children }) => {
       await signOut(auth);
       setUser(null);
     } catch (error) {
-      console.error("로그아웃 오류:", error);
+      logError("로그아웃 오류:", error);
       throw error;
     }
   };
@@ -348,7 +297,7 @@ export const AuthProvider = ({ children }) => {
                 }
               }
             } catch (groupError) {
-              console.warn("그룹 업데이트 오류 (무시됨):", groupError);
+              logWarn("그룹 업데이트 오류 (무시됨):", groupError);
             }
           }
         }
@@ -387,7 +336,7 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
-      console.error("회원탈퇴 오류:", error);
+      logError("회원탈퇴 오류:", error);
       throw error;
     }
   };
@@ -420,7 +369,7 @@ export const AuthProvider = ({ children }) => {
         });
       }
     } catch (error) {
-      console.error("사용자 정보 새로고침 오류:", error);
+      logError("사용자 정보 새로고침 오류:", error);
     }
   };
 
@@ -430,7 +379,6 @@ export const AuthProvider = ({ children }) => {
     signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,
-    resetPassword,
     logout,
     deleteAccount,
     refreshUser,
