@@ -31,6 +31,9 @@ const mockResponse = async (file, imageDataUrl) => {
 };
 
 const parsePrediction = (data = {}) => {
+  if (data.success !== undefined) {
+    return data;
+  }
   if (Array.isArray(data.data) && data.data.length > 0) {
     return data.data[0];
   }
@@ -67,30 +70,19 @@ export const verifyTumblerImage = async (file) => {
       const payload = await callYoloEndpoint(endpoint, file);
       const prediction = parsePrediction(payload);
 
-      const confidence =
-        prediction?.confidence ?? prediction?.score ?? prediction?.prob ?? null;
-      const label = prediction?.label ?? "unknown";
-      const success =
-        prediction?.success ??
-        (typeof confidence === "number"
-          ? confidence >= 0.5
-          : label === "tumbler");
+      const success = prediction?.success ?? false;
+      const message = prediction?.message || "인증 결과를 확인할 수 없습니다.";
+      const detected = prediction?.detected || [];
 
       return {
         success: Boolean(success),
-        message:
-          prediction?.message ||
-          (success
-            ? "텀블러 인증을 완료했어요!"
-            : "텀블러로 인식되지 않았어요."),
-        confidence: typeof confidence === "number" ? confidence : null,
+        message: message,
+        detected: detected,
         imageDataUrl: dataUrl,
         raw: payload,
         endpoint,
       };
     } catch (error) {
-      // 404나 기타 오류면 다음 후보 경로로 시도합니다.
-      // eslint-disable-next-line no-console
       logWarn(`YOLO 엔드포인트 ${path} 호출 실패`, error);
     }
   }
