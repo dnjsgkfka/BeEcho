@@ -9,6 +9,8 @@ import {
   saveVerification,
   checkTodayVerification,
 } from "../services/verifications";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../config/firebase";
 
 const readFileAsDataUrl = (file) =>
   new Promise((resolve, reject) => {
@@ -127,6 +129,18 @@ const VerificationPage = () => {
             return;
           }
 
+          const userDocRef = doc(db, "users", authUser.id);
+          const userDoc = await getDoc(userDocRef);
+          const latestGroupId = userDoc.exists()
+            ? userDoc.data().groupId || null
+            : authUser.groupId || null;
+
+          console.log("인증 저장 시 groupId:", {
+            authUserGroupId: authUser.groupId,
+            latestGroupId,
+            userId: authUser.id,
+          });
+
           const imageUrl = await uploadVerificationImage(
             imageToSave,
             authUser.id
@@ -135,7 +149,7 @@ const VerificationPage = () => {
           await saveVerification({
             userId: authUser.id,
             userName: authUser.name || authUser.username || "사용자",
-            groupId: authUser.groupId || null,
+            groupId: latestGroupId,
             imageUrl,
             success: true,
             confidence: result.confidence || null,

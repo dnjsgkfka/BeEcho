@@ -170,6 +170,21 @@ export const AuthProvider = ({ children }) => {
         console.log("사용자가 팝업을 닫았습니다.");
         return null;
       }
+      // Vercel 배포 시 발생할 수 있는 에러에 대한 더 자세한 로깅
+      if (error.code === "auth/unauthorized-domain") {
+        console.error(
+          "구글 로그인 오류: 허가되지 않은 도메인입니다. Firebase Console에서 Authorized domains에 현재 도메인을 추가해주세요.",
+          error
+        );
+      } else if (
+        error.message?.includes("redirect_uri_mismatch") ||
+        error.message?.includes("redirect_uri")
+      ) {
+        console.error(
+          "구글 로그인 오류: Google Cloud Console에서 Authorized redirect URIs에 현재 도메인을 추가해주세요.",
+          error
+        );
+      }
       console.error("구글 로그인 오류:", error);
       throw error;
     }

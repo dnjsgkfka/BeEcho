@@ -36,7 +36,16 @@ const LoginPage = () => {
         return "올바른 이메일 형식이 아닙니다.";
       case "auth/too-many-requests":
         return "너무 많은 시도가 있었습니다. 잠시 후 다시 시도해주세요.";
+      case "auth/unauthorized-domain":
+        return "이 도메인에서 로그인할 수 없습니다. 관리자에게 문의해주세요.";
+      case "auth/popup-blocked":
+        return "팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용해주세요.";
+      case "auth/popup-closed-by-user":
+        return "로그인 창이 닫혔습니다.";
       default:
+        if (error.message?.includes("redirect_uri")) {
+          return "로그인 설정 오류가 발생했습니다. 관리자에게 문의해주세요.";
+        }
         return "오류가 발생했습니다. 다시 시도해주세요.";
     }
   };

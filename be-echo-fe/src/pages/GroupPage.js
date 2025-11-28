@@ -117,9 +117,18 @@ const GroupPage = () => {
       }
     );
 
+    // 로컬 시간대 기준으로 오늘 날짜 계산 (UTC 문제 방지)
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayDateStr = today.toISOString().split("T")[0];
+    const todayDateStr = `${today.getFullYear()}-${String(
+      today.getMonth() + 1
+    ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+    console.log("그룹 인증 쿼리 설정:", {
+      groupId,
+      todayDateStr,
+      groupIdType: typeof groupId,
+      groupIdValue: groupId,
+    });
 
     const verificationsRef = collection(db, "verifications");
     const todayTimestamp = Timestamp.fromDate(today);
@@ -127,6 +136,14 @@ const GroupPage = () => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowTimestamp = Timestamp.fromDate(tomorrow);
 
+    // groupId가 null이 아닌 경우에만 쿼리 실행
+    if (!groupId) {
+      console.warn("groupId가 없어서 인증 쿼리를 실행할 수 없습니다.");
+      setTodayVerifications([]);
+      return;
+    }
+
+    // 보너스 LP 로직과 동일한 쿼리 사용
     const verificationsQuery = query(
       verificationsRef,
       where("groupId", "==", groupId),
@@ -134,21 +151,77 @@ const GroupPage = () => {
       where("date", "==", todayDateStr)
     );
 
+    console.log("인증 쿼리 시작:", {
+      groupId,
+      todayDateStr,
+      queryType: "groupId + success + date",
+    });
+
     const unsubscribeVerifications = onSnapshot(
       verificationsQuery,
       (verificationsSnapshot) => {
-        const verifications = verificationsSnapshot.docs.map((doc) => {
+        // 쿼리에서 이미 오늘 날짜로 필터링된 결과를 받음
+        const todayVerifications = verificationsSnapshot.docs.map((doc) => {
           const data = doc.data();
           return {
             id: doc.id,
             ...data,
           };
         });
-        console.log("오늘의 인증 데이터:", verifications);
-        setTodayVerifications(verifications);
+
+        console.log("오늘의 인증 데이터:", {
+          count: todayVerifications.length,
+          todayDateStr,
+          groupId,
+          verifications: todayVerifications.map((v) => ({
+            id: v.id,
+            userId: v.userId,
+            userName: v.userName,
+            groupId: v.groupId,
+            date: v.date,
+            success: v.success,
+            hasImageUrl: !!(v.imageUrl || v.imageDataUrl || v.image_url),
+            imageUrl: v.imageUrl || v.imageDataUrl || v.image_url,
+          })),
+          queryParams: {
+            groupId,
+            todayDateStr,
+            success: true,
+          },
+        });
+
+        // 이미지 URL이 있는 오늘의 인증만 필터링
+        const validVerifications = todayVerifications.filter((v) => {
+          const hasImage = !!(v.imageUrl || v.imageDataUrl || v.image_url);
+          if (!hasImage) {
+            console.warn("이미지 URL이 없는 인증:", {
+              id: v.id,
+              userId: v.userId,
+              userName: v.userName,
+              date: v.date,
+            });
+          }
+          return hasImage;
+        });
+
+        console.log("유효한 인증 데이터:", {
+          count: validVerifications.length,
+          validVerifications: validVerifications.map((v) => ({
+            id: v.id,
+            userName: v.userName,
+            imageUrl: v.imageUrl || v.imageDataUrl || v.image_url,
+          })),
+        });
+
+        setTodayVerifications(validVerifications);
       },
       (error) => {
         console.error("인증 사진 실시간 업데이트 오류:", error);
+        console.error("쿼리 파라미터:", {
+          groupId,
+          todayDateStr,
+          success: true,
+        });
         setTodayVerifications([]);
       }
     );
@@ -206,9 +279,8 @@ const GroupPage = () => {
     <div className="group-page">
       {!currentGroup ? (
         <div className="group-empty-state">
-          <div className="group-empty-icon">👥</div>
-          <h3>그룹에 참여해보세요!</h3>
-          <p>함께 인증하고 경쟁하며 환경 보호에 동참해요</p>
+          <h3>그룹에 참여해보세요</h3>
+          <p>함께 인증하고 경쟁하며 환경 보호에 동참하세요</p>
           <div className="group-empty-actions">
             <button
               className="group-button group-button-primary"
@@ -278,7 +350,36 @@ const GroupPage = () => {
               </div>
               <div className="stat-pill total">
                 <p>오늘 인증</p>
-                <strong>{todayVerifications.length}명</strong>
+                <strong>
+                  {(() => {
+                    const today = new Date();
+                    const todayStr = `${today.getFullYear()}-${String(
+                      today.getMonth() + 1
+                    ).padStart(2, "0")}-${String(today.getDate()).padStart(
+                      2,
+                      "0"
+                    )}`;
+                    // 멤버 목록에서 오늘 인증한 멤버 수 계산
+                    const todayVerifiedMembers = groupMembers.filter(
+                      (member) => {
+                        if (!member.lastSuccessDate) return false;
+                        const lastDate = new Date(member.lastSuccessDate);
+                        const lastDateStr = `${lastDate.getFullYear()}-${String(
+                          lastDate.getMonth() + 1
+                        ).padStart(2, "0")}-${String(
+                          lastDate.getDate()
+                        ).padStart(2, "0")}`;
+                        return lastDateStr === todayStr;
+                      }
+                    );
+                    // 인증 데이터와 멤버 데이터 중 더 큰 값 사용
+                    return Math.max(
+                      todayVerifications.length,
+                      todayVerifiedMembers.length
+                    );
+                  })()}
+                  명
+                </strong>
               </div>
               <div
                 className="stat-pill rank"

@@ -138,3 +138,31 @@ export const getGroupRank = async (groupId) => {
     return null;
   }
 };
+
+/**
+ * 전체 개인 수 가져오기
+ */
+export const getTotalPersonalCount = async () => {
+  try {
+    const usersRef = collection(db, "users");
+    const querySnapshot = await getDocs(usersRef);
+    return querySnapshot.size;
+  } catch (error) {
+    console.error("전체 개인 수 가져오기 오류:", error);
+    return 0;
+  }
+};
+
+/**
+ * 전체 그룹 수 가져오기
+ */
+export const getTotalGroupCount = async () => {
+  try {
+    const groupsRef = collection(db, "groups");
+    const querySnapshot = await getDocs(groupsRef);
+    return querySnapshot.size;
+  } catch (error) {
+    console.error("전체 그룹 수 가져오기 오류:", error);
+    return 0;
+  }
+};
