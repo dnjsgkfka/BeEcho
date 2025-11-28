@@ -1,6 +1,9 @@
 ![Image](https://github.com/user-attachments/assets/a54b40bd-c3fe-4778-b705-6658f2d7dd3f)
 
 ## link
+**BeEcho.**는 모바일 전용으로 만들어졌으며, 모바일 환경에서 사용하는 것을 권장합니다.
+
+PC 환경도 접속이 가능하지만, 인증 시 카메라 기능이 실행되지 않고 이미지 첨부 방식으로 실행됩니다.
 
 [BeEcho.](be-echo-app.vercel.app)
 
@@ -8,7 +11,7 @@
 
 ID: ram1234@naver.com
 
-password: 1234
+password: 123456
 
 ## 목차
 
