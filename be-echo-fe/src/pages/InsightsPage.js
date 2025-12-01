@@ -1,26 +1,51 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "../styles/insights.css";
 import { StatPill, Calendar } from "../components/ui";
 import { useAppData } from "../contexts/AppDataContext";
+import { useAuth } from "../contexts/AuthContext";
+import { getVerifiedDates } from "../services/verifications";
+import { logError } from "../utils/logger";
 
 const InsightsPage = () => {
-  const { insights, history } = useAppData();
+  const { insights } = useAppData();
+  const { user: authUser } = useAuth();
+  const [verifiedDates, setVerifiedDates] = useState([]);
+  const [isLoadingDates, setIsLoadingDates] = useState(true);
+  const [datesError, setDatesError] = useState(null);
 
-  // 인증 성공한 날짜 (이번 달)
-  const verifiedDates = useMemo(() => {
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth();
+  const loadVerifiedDates = useCallback(async () => {
+    if (!authUser?.id) {
+      setIsLoadingDates(false);
+      return;
+    }
 
-    return history
-      .filter((entry) => entry.success)
-      .map((entry) => new Date(entry.timestamp))
-      .filter((date) => {
-        return (
-          date.getFullYear() === currentYear && date.getMonth() === currentMonth
-        );
-      });
-  }, [history]);
+    try {
+      setIsLoadingDates(true);
+      setDatesError(null);
+      const dates = await getVerifiedDates(authUser.id);
+      setVerifiedDates(dates);
+    } catch (error) {
+      logError("인증 날짜 로드 오류:", error);
+      setDatesError("인증 날짜를 불러오는데 실패했습니다.");
+    } finally {
+      setIsLoadingDates(false);
+    }
+  }, [authUser?.id]);
+
+  useEffect(() => {
+    loadVerifiedDates();
+  }, [loadVerifiedDates]);
+
+  useEffect(() => {
+    const handleVerificationSaved = () => {
+      loadVerifiedDates();
+    };
+
+    window.addEventListener("verificationSaved", handleVerificationSaved);
+    return () => {
+      window.removeEventListener("verificationSaved", handleVerificationSaved);
+    };
+  }, [loadVerifiedDates]);
 
   const { currentWeek, previousWeek, diffLabel, maxTrendCount } =
     useMemo(() => {
@@ -70,8 +95,26 @@ const InsightsPage = () => {
         </div>
 
         <section className="insights-section">
-          <h3>이번 달 캘린더</h3>
-          <Calendar verifiedDates={verifiedDates} />
+          <h3>캘린더</h3>
+          {isLoadingDates ? (
+            <div className="insights-loading">
+              <div className="loading-spinner-small"></div>
+              <p>로딩 중...</p>
+            </div>
+          ) : datesError ? (
+            <div className="insights-error">
+              <p>{datesError}</p>
+              <button
+                type="button"
+                className="retry-button"
+                onClick={loadVerifiedDates}
+              >
+                다시 시도
+              </button>
+            </div>
+          ) : (
+            <Calendar verifiedDates={verifiedDates} />
+          )}
         </section>
 
         <section className="insights-section insight-delta">

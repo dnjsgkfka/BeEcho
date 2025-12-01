@@ -5,6 +5,7 @@ import JoinGroupModal from "../components/group/JoinGroupModal";
 import GroupSettingsModal from "../components/group/GroupSettingsModal";
 import GroupLPInfoModal from "../components/group/GroupLPInfoModal";
 import { SettingsIcon } from "../components/icons";
+import { Skeleton, SkeletonCard } from "../components/ui";
 import { useAppData } from "../contexts/AppDataContext";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -236,25 +237,50 @@ const GroupPage = () => {
           setCopied(false);
         }, 2000);
       } catch (err) {
-        console.error("복사 실패:", err);
+        logError("복사 실패:", err);
       }
       document.body.removeChild(textArea);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="group-page">
-        <div className="group-loading">
-          <p>로딩 중...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="group-page">
-      {!currentGroup ? (
+      {isLoading ? (
+        <div className="group-content">
+          <div className="group-info-card">
+            <div className="group-info-header">
+              <div style={{ flex: 1 }}>
+                <Skeleton width="120px" height="24px" style={{ marginBottom: "8px" }} />
+                <Skeleton width="100px" height="16px" />
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <Skeleton width="60px" height="28px" borderRadius="12px" />
+                <Skeleton width="32px" height="32px" borderRadius="8px" />
+              </div>
+            </div>
+            <div className="group-info-stats" style={{ marginTop: "20px" }}>
+              <Skeleton width="80px" height="60px" borderRadius="12px" />
+              <Skeleton width="80px" height="60px" borderRadius="12px" />
+              <Skeleton width="80px" height="60px" borderRadius="12px" />
+            </div>
+          </div>
+          <section className="group-section">
+            <Skeleton width="100px" height="20px" style={{ marginBottom: "16px" }} />
+            <div className="group-members-list">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="group-member-item">
+                  <Skeleton width="40px" height="40px" borderRadius="50%" />
+                  <div style={{ flex: 1, marginLeft: "12px" }}>
+                    <Skeleton width="60%" height="16px" />
+                    <Skeleton width="40%" height="14px" style={{ marginTop: "8px" }} />
+                  </div>
+                  <Skeleton width="60px" height="20px" />
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      ) : !currentGroup ? (
         <div className="group-empty-state">
           <h3>그룹에 참여해보세요</h3>
           <p>함께 인증하고 경쟁하며 환경 보호에 동참하세요</p>
