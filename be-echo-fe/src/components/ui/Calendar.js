@@ -1,11 +1,15 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import "../../styles/calendar.css";
 import { getLocalDateString } from "../../utils/date";
 
 const Calendar = ({ verifiedDates = [] }) => {
   const today = new Date();
-  const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth();
+  const [currentDate, setCurrentDate] = useState(
+    new Date(today.getFullYear(), today.getMonth(), 1)
+  );
+
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth();
 
   // 이번 달의 첫 날과 마지막 날 계산
   const firstDay = new Date(currentYear, currentMonth, 1);
@@ -61,12 +65,51 @@ const Calendar = ({ verifiedDates = [] }) => {
 
   const weekDays = ["일", "월", "화", "수", "목", "금", "토"];
 
+  const goToPreviousMonth = () => {
+    setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+  };
+
+  const goToToday = () => {
+    setCurrentDate(new Date(today.getFullYear(), today.getMonth(), 1));
+  };
+
+  const isCurrentMonth =
+    currentYear === today.getFullYear() && currentMonth === today.getMonth();
+
   return (
     <div className="calendar-container">
       <div className="calendar-header">
-        <h3>
-          {currentYear}년 {monthNames[currentMonth]}
-        </h3>
+        <div className="calendar-navigation">
+          <button
+            type="button"
+            className="calendar-nav-button calendar-nav-button-prev"
+            onClick={goToPreviousMonth}
+            aria-label="이전 달"
+          />
+          <h3>
+            {currentYear}년 {monthNames[currentMonth]}
+          </h3>
+          <button
+            type="button"
+            className="calendar-nav-button calendar-nav-button-next"
+            onClick={goToNextMonth}
+            aria-label="다음 달"
+            disabled={isCurrentMonth}
+          />
+        </div>
+        {!isCurrentMonth && (
+          <button
+            type="button"
+            className="calendar-today-button"
+            onClick={goToToday}
+          >
+            오늘로
+          </button>
+        )}
       </div>
       <div className="calendar-grid">
         {/* 요일 헤더 */}

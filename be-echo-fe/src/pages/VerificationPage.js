@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "../styles/verification.css";
 import { CameraIcon, InfoIcon } from "../components/icons";
 import { useAppData } from "../contexts/AppDataContext";
@@ -9,6 +9,7 @@ import {
   uploadVerificationImage,
   saveVerification,
   checkTodayVerification,
+  getRecentVerifications,
 } from "../services/verifications";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
@@ -60,13 +61,29 @@ const VerificationPage = () => {
   const [successImageDataUrl, setSuccessImageDataUrl] = useState(null);
   const [verificationError, setVerificationError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [recentVerifications, setRecentVerifications] = useState([]);
+  const [isLoadingRecent, setIsLoadingRecent] = useState(true);
 
-  // 최근 성공 인증 내역 (최대 6개)
-  const recentSuccessHistory = useMemo(() => {
-    return history
-      .filter((entry) => entry.success && entry.imageDataUrl)
-      .slice(0, 6);
-  }, [history]);
+  useEffect(() => {
+    const loadRecentVerifications = async () => {
+      if (!authUser?.id) {
+        setIsLoadingRecent(false);
+        return;
+      }
+
+      try {
+        setIsLoadingRecent(true);
+        const verifications = await getRecentVerifications(authUser.id, 6);
+        setRecentVerifications(verifications);
+      } catch (error) {
+        logError("최근 인증 로드 오류:", error);
+      } finally {
+        setIsLoadingRecent(false);
+      }
+    };
+
+    loadRecentVerifications();
+  }, [authUser?.id]);
 
   const timeUntilNextVerification = useMemo(() => {
     if (home.canVerify) return null;
@@ -158,6 +175,9 @@ const VerificationPage = () => {
 
           await refreshUser();
           setSuccessImageDataUrl(imageToSave);
+
+          const verifications = await getRecentVerifications(authUser.id, 6);
+          setRecentVerifications(verifications);
         } catch (error) {
           logError("인증 저장 오류:", error);
           setVerificationError(
@@ -305,12 +325,16 @@ const VerificationPage = () => {
           <h3>최근 인증 내역</h3>
           <p>지금까지 성공한 인증 사진들을 확인해보세요</p>
         </div>
-        {recentSuccessHistory.length > 0 ? (
+        {isLoadingRecent ? (
+          <div className="recent-verifications-empty">
+            <p>로딩 중...</p>
+          </div>
+        ) : recentVerifications.length > 0 ? (
           <div className="recent-verifications-grid">
-            {recentSuccessHistory.map((entry) => (
+            {recentVerifications.map((entry) => (
               <div key={entry.id} className="recent-verification-item">
                 <img
-                  src={entry.imageDataUrl}
+                  src={entry.imageUrl || entry.imageDataUrl}
                   alt={`인증 ${new Date(entry.timestamp).toLocaleDateString(
                     "ko-KR"
                   )}`}
