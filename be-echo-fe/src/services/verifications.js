@@ -9,6 +9,8 @@ import {
   query,
   where,
   getDocs,
+  orderBy,
+  limit,
   Timestamp,
   writeBatch,
 } from "firebase/firestore";
@@ -276,5 +278,107 @@ const checkAndGiveGroupBonus = async (groupId, today) => {
     }
   } catch (error) {
     logError("그룹 보너스 확인 오류:", error);
+  }
+};
+
+/**
+ * 최근 인증 기록 목록
+ */
+export const getRecentVerifications = async (userId, limitCount = 6) => {
+  try {
+    const verificationsRef = collection(db, "verifications");
+    const q = query(
+      verificationsRef,
+      where("userId", "==", userId),
+      where("success", "==", true),
+      orderBy("verifiedAt", "desc"),
+      limit(limitCount)
+    );
+
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => {
+      const data = doc.data();
+      const timestamp =
+        data.verifiedAt?.toDate?.() || data.createdAt?.toDate?.() || new Date();
+
+      return {
+        id: doc.id,
+        timestamp: timestamp.toISOString(),
+        success: data.success,
+        imageUrl: data.imageUrl,
+        imageDataUrl: data.imageUrl,
+        confidence: data.confidence,
+        date: data.date,
+      };
+    });
+  } catch (error) {
+    if (error.code === "failed-precondition") {
+      logError("Firebase 인덱스가 필요합니다.", error);
+      const verificationsRef = collection(db, "verifications");
+      const q = query(
+        verificationsRef,
+        where("userId", "==", userId),
+        where("success", "==", true)
+      );
+      const snapshot = await getDocs(q);
+      const results = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        const timestamp =
+          data.verifiedAt?.toDate?.() ||
+          data.createdAt?.toDate?.() ||
+          new Date();
+        return {
+          id: doc.id,
+          timestamp: timestamp.toISOString(),
+          success: data.success,
+          imageUrl: data.imageUrl,
+          imageDataUrl: data.imageUrl,
+          confidence: data.confidence,
+          date: data.date,
+        };
+      });
+      return results
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .slice(0, limitCount);
+    }
+    logError("최근 인증 기록 가져오기 오류:", error);
+    return [];
+  }
+};
+
+/**
+ * 성공 날짜 목록
+ */
+export const getVerifiedDates = async (userId) => {
+  try {
+    const verificationsRef = collection(db, "verifications");
+    const q = query(
+      verificationsRef,
+      where("userId", "==", userId),
+      where("success", "==", true)
+    );
+
+    const snapshot = await getDocs(q);
+    const dates = snapshot.docs
+      .map((doc) => {
+        const data = doc.data();
+        if (data.date) {
+          const [year, month, day] = data.date.split("-").map(Number);
+          return new Date(year, month - 1, day).toISOString();
+        }
+        if (data.verifiedAt?.toDate) {
+          return data.verifiedAt.toDate().toISOString();
+        }
+        if (data.createdAt?.toDate) {
+          return data.createdAt.toDate().toISOString();
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    return dates;
+  } catch (error) {
+    logError("인증 날짜 가져오기 오류:", error);
+    return [];
   }
 };
