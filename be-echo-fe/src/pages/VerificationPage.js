@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import "../styles/verification.css";
 import { CameraIcon, InfoIcon } from "../components/icons";
 import { useAppData } from "../contexts/AppDataContext";
@@ -21,6 +27,40 @@ const readFileAsDataUrl = (file) =>
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+
+const RecentVerificationItem = ({ entry }) => {
+  const [imageError, setImageError] = useState(false);
+
+  return (
+    <div className="recent-verification-item">
+      {imageError ? (
+        <div className="recent-verification-placeholder">
+          <span>📷</span>
+        </div>
+      ) : (
+        <img
+          src={entry.imageUrl || entry.imageDataUrl}
+          alt={`인증 ${new Date(entry.timestamp).toLocaleDateString("ko-KR")}`}
+          className="recent-verification-image"
+          onError={() => setImageError(true)}
+        />
+      )}
+      <div className="recent-verification-info">
+        <p className="recent-verification-date">
+          {new Date(entry.timestamp).toLocaleDateString("ko-KR", {
+            month: "short",
+            day: "numeric",
+          })}
+        </p>
+        {entry.confidence && (
+          <p className="recent-verification-confidence">
+            {Math.round(entry.confidence * 100)}%
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const CERT_GUIDE = [
   {
@@ -63,27 +103,30 @@ const VerificationPage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [recentVerifications, setRecentVerifications] = useState([]);
   const [isLoadingRecent, setIsLoadingRecent] = useState(true);
+  const [recentError, setRecentError] = useState(null);
+
+  const loadRecentVerifications = useCallback(async () => {
+    if (!authUser?.id) {
+      setIsLoadingRecent(false);
+      return;
+    }
+
+    try {
+      setIsLoadingRecent(true);
+      setRecentError(null);
+      const verifications = await getRecentVerifications(authUser.id, 6);
+      setRecentVerifications(verifications);
+    } catch (error) {
+      logError("최근 인증 로드 오류:", error);
+      setRecentError("최근 인증을 불러오는데 실패했습니다.");
+    } finally {
+      setIsLoadingRecent(false);
+    }
+  }, [authUser?.id]);
 
   useEffect(() => {
-    const loadRecentVerifications = async () => {
-      if (!authUser?.id) {
-        setIsLoadingRecent(false);
-        return;
-      }
-
-      try {
-        setIsLoadingRecent(true);
-        const verifications = await getRecentVerifications(authUser.id, 6);
-        setRecentVerifications(verifications);
-      } catch (error) {
-        logError("최근 인증 로드 오류:", error);
-      } finally {
-        setIsLoadingRecent(false);
-      }
-    };
-
     loadRecentVerifications();
-  }, [authUser?.id]);
+  }, [loadRecentVerifications]);
 
   const timeUntilNextVerification = useMemo(() => {
     if (home.canVerify) return null;
@@ -178,6 +221,8 @@ const VerificationPage = () => {
 
           const verifications = await getRecentVerifications(authUser.id, 6);
           setRecentVerifications(verifications);
+
+          window.dispatchEvent(new CustomEvent("verificationSaved"));
         } catch (error) {
           logError("인증 저장 오류:", error);
           setVerificationError(
@@ -326,34 +371,25 @@ const VerificationPage = () => {
           <p>지금까지 성공한 인증 사진들을 확인해보세요</p>
         </div>
         {isLoadingRecent ? (
-          <div className="recent-verifications-empty">
+          <div className="recent-verifications-loading">
+            <div className="loading-spinner-small"></div>
             <p>로딩 중...</p>
+          </div>
+        ) : recentError ? (
+          <div className="recent-verifications-error">
+            <p>{recentError}</p>
+            <button
+              type="button"
+              className="retry-button"
+              onClick={loadRecentVerifications}
+            >
+              다시 시도
+            </button>
           </div>
         ) : recentVerifications.length > 0 ? (
           <div className="recent-verifications-grid">
             {recentVerifications.map((entry) => (
-              <div key={entry.id} className="recent-verification-item">
-                <img
-                  src={entry.imageUrl || entry.imageDataUrl}
-                  alt={`인증 ${new Date(entry.timestamp).toLocaleDateString(
-                    "ko-KR"
-                  )}`}
-                  className="recent-verification-image"
-                />
-                <div className="recent-verification-info">
-                  <p className="recent-verification-date">
-                    {new Date(entry.timestamp).toLocaleDateString("ko-KR", {
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </p>
-                  {entry.confidence && (
-                    <p className="recent-verification-confidence">
-                      {Math.round(entry.confidence * 100)}%
-                    </p>
-                  )}
-                </div>
-              </div>
+              <RecentVerificationItem key={entry.id} entry={entry} />
             ))}
           </div>
         ) : (

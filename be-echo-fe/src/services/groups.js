@@ -262,7 +262,7 @@ export const joinGroup = async (code, userId, userName, userPhotoURL) => {
       groupName: group.name,
     };
   } catch (error) {
-    console.error("그룹 참여 오류:", error);
+    logError("그룹 참여 오류:", error);
     throw error;
   }
 };
