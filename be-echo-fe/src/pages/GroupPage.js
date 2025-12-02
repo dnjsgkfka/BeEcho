@@ -528,6 +528,7 @@ const GroupPage = () => {
           if (result?.groupId) {
             try {
               await refreshUser();
+              await new Promise((resolve) => setTimeout(resolve, 300));
               const group = await getGroup(result.groupId);
               if (group) {
                 setCurrentGroup(group);
@@ -551,6 +552,7 @@ const GroupPage = () => {
           if (result?.groupId) {
             try {
               await refreshUser();
+              await new Promise((resolve) => setTimeout(resolve, 300));
               const group = await getGroup(result.groupId);
               if (group) {
                 setCurrentGroup(group);

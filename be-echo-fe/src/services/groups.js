@@ -15,8 +15,11 @@ import { db } from "../config/firebase";
 import { GROUP_CODE_LENGTH, GROUP_CODE_CHARS } from "../constants/app";
 import { logError } from "../utils/logger";
 
+const BATCH_LIMIT = 500;
+const BATCH_UPDATE_DELAY = 100;
+
 /**
- * 6자리 그룹 코드 (영문 대문자 + 숫자)
+ * 6자리 그룹 코드 생성 (영문 대문자 + 숫자)
  */
 const generateGroupCode = () => {
   let code = "";
@@ -39,7 +42,7 @@ const checkGroupCodeExists = async (code) => {
     return !querySnapshot.empty;
   } catch (error) {
     logError("그룹 코드 중복 체크 오류:", error);
-    return true;
+    return true; // 에러 시 중복으로 간주하여 재시도
   }
 };
 
@@ -65,6 +68,113 @@ const generateUniqueGroupCode = async () => {
 };
 
 /**
+ * 사용자 정보 조회
+ */
+const getUserData = async (userId) => {
+  const userRef = doc(db, "users", userId);
+  const userDoc = await getDoc(userRef);
+
+  if (!userDoc.exists()) {
+    throw new Error("사용자 정보를 찾을 수 없습니다.");
+  }
+
+  return userDoc.data();
+};
+
+/**
+ * 그룹 정보 조회 및 검증
+ */
+const getGroupAndValidate = async (groupId, leaderId = null) => {
+  const groupRef = doc(db, "groups", groupId);
+  const groupDoc = await getDoc(groupRef);
+
+  if (!groupDoc.exists()) {
+    throw new Error("그룹을 찾을 수 없습니다.");
+  }
+
+  const groupData = groupDoc.data();
+
+  if (leaderId && groupData.leaderId !== leaderId) {
+    throw new Error("그룹장만 이 작업을 수행할 수 있습니다.");
+  }
+
+  return { groupRef, groupData };
+};
+
+/**
+ * 인증 데이터의 groupId 업데이트
+ * @param {string} userId - 사용자 ID
+ * @param {string} newGroupId - 새 그룹 ID
+ * @returns {Promise<number>} 업데이트된 인증 데이터 개수
+ */
+const updateVerificationGroupIds = async (userId, newGroupId) => {
+  const verificationsRef = collection(db, "verifications");
+  const userVerificationsQuery = query(
+    verificationsRef,
+    where("userId", "==", userId),
+    where("success", "==", true)
+  );
+  const verificationsSnapshot = await getDocs(userVerificationsQuery);
+
+  if (verificationsSnapshot.empty) {
+    return 0;
+  }
+
+  const batch = writeBatch(db);
+  let updateCount = 0;
+
+  verificationsSnapshot.docs.forEach((verificationDoc) => {
+    const verificationData = verificationDoc.data();
+    if (!verificationData.groupId || verificationData.groupId !== newGroupId) {
+      batch.update(verificationDoc.ref, { groupId: newGroupId });
+      updateCount++;
+
+      if (updateCount >= BATCH_LIMIT) {
+        throw new Error(
+          "인증 데이터가 너무 많아 한 번에 업데이트할 수 없습니다."
+        );
+      }
+    }
+  });
+
+  if (updateCount > 0) {
+    await batch.commit();
+    await new Promise((resolve) => setTimeout(resolve, BATCH_UPDATE_DELAY));
+  }
+
+  return updateCount;
+};
+
+/**
+ * 사용자의 그룹 인증 데이터에서 groupId 제거 (배치에 추가)
+ * @param {WriteBatch} batch - Firestore 배치 객체
+ * @param {string} userId - 사용자 ID
+ * @param {string} groupId - 그룹 ID
+ * @returns {Promise<number>} 업데이트된 인증 데이터 개수
+ */
+const clearUserVerificationGroupIdsInBatch = async (batch, userId, groupId) => {
+  const verificationsRef = collection(db, "verifications");
+  const userVerificationsQuery = query(
+    verificationsRef,
+    where("userId", "==", userId),
+    where("groupId", "==", groupId)
+  );
+  const verificationsSnapshot = await getDocs(userVerificationsQuery);
+
+  if (verificationsSnapshot.empty) {
+    return 0;
+  }
+
+  let updateCount = 0;
+  verificationsSnapshot.docs.forEach((verificationDoc) => {
+    batch.update(verificationDoc.ref, { groupId: null });
+    updateCount++;
+  });
+
+  return updateCount;
+};
+
+/**
  * 그룹 생성
  * @param {string} groupName - 그룹 이름
  * @param {string} leaderId - 그룹장 사용자 ID
@@ -81,6 +191,9 @@ export const createGroup = async (
   try {
     // 고유 그룹 코드 생성
     const code = await generateUniqueGroupCode();
+
+    const leaderUserData = await getUserData(leaderId);
+    const latestPhotoURL = leaderUserData.photoURL || leaderPhotoURL || null;
 
     // 그룹 문서 생성
     const groupRef = doc(collection(db, "groups"));
@@ -103,39 +216,19 @@ export const createGroup = async (
     await setDoc(memberRef, {
       userId: leaderId,
       name: leaderName,
-      photoURL: leaderPhotoURL || null,
-      lp: 0,
-      streakDays: 0,
+      photoURL: latestPhotoURL,
+      lp: leaderUserData.lp || 0,
+      streakDays: leaderUserData.streakDays || 0,
       joinedAt: serverTimestamp(),
     });
 
-    // 사용자 groupId 업데이트
+    await updateVerificationGroupIds(leaderId, groupId);
+
     const userRef = doc(db, "users", leaderId);
     await updateDoc(userRef, {
       groupId: groupId,
       isGroupLeader: true,
     });
-
-    // 기존 인증 데이터의 groupId 업데이트 (오늘 인증 포함)
-    const verificationsRef = collection(db, "verifications");
-    const userVerificationsQuery = query(
-      verificationsRef,
-      where("userId", "==", leaderId),
-      where("success", "==", true)
-    );
-    const verificationsSnapshot = await getDocs(userVerificationsQuery);
-
-    if (!verificationsSnapshot.empty) {
-      const batch = writeBatch(db);
-      verificationsSnapshot.docs.forEach((verificationDoc) => {
-        const verificationData = verificationDoc.data();
-        // groupId가 null이거나 다른 그룹인 경우에만 업데이트
-        if (!verificationData.groupId) {
-          batch.update(verificationDoc.ref, { groupId: groupId });
-        }
-      });
-      await batch.commit();
-    }
 
     return {
       groupId: groupId,
@@ -191,15 +284,11 @@ export const joinGroup = async (code, userId, userName, userPhotoURL) => {
 
     const groupId = group.id;
 
-    const userRef = doc(db, "users", userId);
-    const userDoc = await getDoc(userRef);
+    // 사용자 정보 가져오기
+    const userData = await getUserData(userId);
+    const latestPhotoURL = userData.photoURL || userPhotoURL || null;
 
-    if (!userDoc.exists()) {
-      throw new Error("사용자 정보를 찾을 수 없습니다.");
-    }
-
-    const userData = userDoc.data();
-
+    // 그룹 참여 가능 여부 확인
     if (userData.groupId === groupId) {
       throw new Error("이미 이 그룹에 속해있습니다.");
     }
@@ -210,6 +299,7 @@ export const joinGroup = async (code, userId, userName, userPhotoURL) => {
       );
     }
 
+    // 멤버 중복 확인
     const memberRef = doc(db, "groups", groupId, "members", userId);
     const memberDoc = await getDoc(memberRef);
 
@@ -220,38 +310,21 @@ export const joinGroup = async (code, userId, userName, userPhotoURL) => {
     await setDoc(memberRef, {
       userId: userId,
       name: userName,
-      photoURL: userPhotoURL || null,
+      photoURL: latestPhotoURL,
       lp: userData.lp || 0,
       streakDays: userData.streakDays || 0,
       joinedAt: serverTimestamp(),
     });
 
+    await updateVerificationGroupIds(userId, groupId);
+
+    const userRef = doc(db, "users", userId);
     await updateDoc(userRef, {
       groupId: groupId,
       isGroupLeader: false,
     });
 
-    // 기존 인증 데이터의 groupId 업데이트 (오늘 인증 포함)
-    const verificationsRef = collection(db, "verifications");
-    const userVerificationsQuery = query(
-      verificationsRef,
-      where("userId", "==", userId),
-      where("success", "==", true)
-    );
-    const verificationsSnapshot = await getDocs(userVerificationsQuery);
-
-    if (!verificationsSnapshot.empty) {
-      const batch = writeBatch(db);
-      verificationsSnapshot.docs.forEach((verificationDoc) => {
-        const verificationData = verificationDoc.data();
-        // groupId가 null이거나 다른 그룹인 경우에만 업데이트
-        if (!verificationData.groupId) {
-          batch.update(verificationDoc.ref, { groupId: groupId });
-        }
-      });
-      await batch.commit();
-    }
-
+    // 그룹 멤버 수 업데이트
     const groupRef = doc(db, "groups", groupId);
     await updateDoc(groupRef, {
       memberCount: (group.memberCount || 1) + 1,
@@ -319,20 +392,14 @@ export const getGroupMembers = async (groupId) => {
  */
 export const deleteGroup = async (groupId, leaderId) => {
   try {
-    const groupRef = doc(db, "groups", groupId);
-    const groupDoc = await getDoc(groupRef);
-
-    if (!groupDoc.exists()) {
-      throw new Error("그룹을 찾을 수 없습니다.");
-    }
-
-    const groupData = groupDoc.data();
-    if (groupData.leaderId !== leaderId) {
-      throw new Error("그룹장만 그룹을 삭제할 수 있습니다.");
-    }
+    const { groupRef, groupData } = await getGroupAndValidate(
+      groupId,
+      leaderId
+    );
 
     const batch = writeBatch(db);
 
+    // 모든 멤버의 groupId 제거 및 멤버 문서 삭제
     const membersRef = collection(db, "groups", groupId, "members");
     const membersSnapshot = await getDocs(membersRef);
 
@@ -343,6 +410,7 @@ export const deleteGroup = async (groupId, leaderId) => {
       batch.delete(memberDoc.ref);
     });
 
+    // 그룹의 모든 인증 데이터에서 groupId 제거
     const verificationsRef = collection(db, "verifications");
     const groupVerificationsQuery = query(
       verificationsRef,
@@ -353,6 +421,7 @@ export const deleteGroup = async (groupId, leaderId) => {
       batch.update(verificationDoc.ref, { groupId: null });
     });
 
+    // 그룹 문서 삭제
     batch.delete(groupRef);
     await batch.commit();
   } catch (error) {
@@ -374,17 +443,7 @@ export const updateGroupName = async (groupId, leaderId, newName) => {
       throw new Error("그룹 이름을 입력해주세요.");
     }
 
-    const groupRef = doc(db, "groups", groupId);
-    const groupDoc = await getDoc(groupRef);
-
-    if (!groupDoc.exists()) {
-      throw new Error("그룹을 찾을 수 없습니다.");
-    }
-
-    const groupData = groupDoc.data();
-    if (groupData.leaderId !== leaderId) {
-      throw new Error("그룹장만 그룹 이름을 변경할 수 있습니다.");
-    }
+    const { groupRef } = await getGroupAndValidate(groupId, leaderId);
 
     await updateDoc(groupRef, {
       name: newName.trim(),
@@ -408,17 +467,7 @@ export const updateGroupAnnouncement = async (
   announcement
 ) => {
   try {
-    const groupRef = doc(db, "groups", groupId);
-    const groupDoc = await getDoc(groupRef);
-
-    if (!groupDoc.exists()) {
-      throw new Error("그룹을 찾을 수 없습니다.");
-    }
-
-    const groupData = groupDoc.data();
-    if (groupData.leaderId !== leaderId) {
-      throw new Error("그룹장만 공지사항을 작성할 수 있습니다.");
-    }
+    const { groupRef } = await getGroupAndValidate(groupId, leaderId);
 
     await updateDoc(groupRef, {
       announcement: announcement?.trim() || null,
@@ -439,17 +488,10 @@ export const updateGroupAnnouncement = async (
  */
 export const removeMember = async (groupId, leaderId, memberId) => {
   try {
-    const groupRef = doc(db, "groups", groupId);
-    const groupDoc = await getDoc(groupRef);
-
-    if (!groupDoc.exists()) {
-      throw new Error("그룹을 찾을 수 없습니다.");
-    }
-
-    const groupData = groupDoc.data();
-    if (groupData.leaderId !== leaderId) {
-      throw new Error("그룹장만 멤버를 방출할 수 있습니다.");
-    }
+    const { groupRef, groupData } = await getGroupAndValidate(
+      groupId,
+      leaderId
+    );
 
     if (groupData.leaderId === memberId) {
       throw new Error("그룹장은 방출할 수 없습니다.");
@@ -464,11 +506,14 @@ export const removeMember = async (groupId, leaderId, memberId) => {
 
     const batch = writeBatch(db);
 
+    // 사용자 groupId 제거
     const userRef = doc(db, "users", memberId);
     batch.update(userRef, { groupId: null });
 
+    // 멤버 문서 삭제
     batch.delete(memberRef);
 
+    // 그룹 멤버 수 감소
     await updateDoc(groupRef, {
       memberCount: Math.max((groupData.memberCount || 1) - 1, 0),
     });
@@ -488,14 +533,8 @@ export const removeMember = async (groupId, leaderId, memberId) => {
  */
 export const leaveGroup = async (groupId, userId) => {
   try {
-    const groupRef = doc(db, "groups", groupId);
-    const groupDoc = await getDoc(groupRef);
+    const { groupRef, groupData } = await getGroupAndValidate(groupId);
 
-    if (!groupDoc.exists()) {
-      throw new Error("그룹을 찾을 수 없습니다.");
-    }
-
-    const groupData = groupDoc.data();
     if (groupData.leaderId === userId) {
       throw new Error("그룹장은 그룹을 나갈 수 없습니다. 그룹을 삭제해주세요.");
     }
@@ -509,11 +548,16 @@ export const leaveGroup = async (groupId, userId) => {
 
     const batch = writeBatch(db);
 
+    // 사용자 groupId 제거
     const userRef = doc(db, "users", userId);
     batch.update(userRef, { groupId: null });
 
+    // 멤버 문서 삭제
     batch.delete(memberRef);
 
+    await clearUserVerificationGroupIdsInBatch(batch, userId, groupId);
+
+    // 그룹 멤버 수 감소
     await updateDoc(groupRef, {
       memberCount: Math.max((groupData.memberCount || 1) - 1, 0),
     });

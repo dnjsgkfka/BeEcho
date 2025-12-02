@@ -9,9 +9,9 @@ PC 환경도 접속이 가능하지만, 인증 시 카메라 기능이 실행되
 
 **테스트 계정**:
 
-ID: ram1234@naver.com
+ID: 4@naver.com
 
-password: 123456
+password: halam0427!
 
 ## 목차
 
