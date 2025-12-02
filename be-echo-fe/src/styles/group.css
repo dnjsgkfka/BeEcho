@@ -359,20 +359,51 @@
 
 /* 멤버 목록 */
 .group-members-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.group-members-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.group-members-list::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 3px;
+}
+
+.group-members-list::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 3px;
+  opacity: 0.3;
+}
+
+.group-members-list::-webkit-scrollbar-thumb:hover {
+  opacity: 0.5;
+}
+
+@media (max-width: 640px) {
+  .group-members-list {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    max-height: 500px;
+  }
 }
 
 .group-member-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px;
+  padding: 12px;
   background: #fff;
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid rgba(9, 19, 31, 0.08);
   transition: all 0.2s ease;
+  min-width: 0;
 }
 
 @media (max-width: 640px) {
@@ -473,15 +504,65 @@
   }
 }
 
-.group-member-lp {
+.group-member-lp-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  text-align: right;
+}
+
+.group-member-total-lp {
   font-size: 16px;
   font-weight: 700;
   color: #05c46b;
 }
 
+.group-member-today-lp {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.group-member-today-lp.empty {
+  opacity: 0.5;
+}
+
+.group-member-today-lp > span:first-child {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.group-member-bonus-lp {
+  color: #10b981;
+  font-weight: 600;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.group-member-verified-badge {
+  font-size: 12px;
+  color: #10b981;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
 @media (max-width: 640px) {
-  .group-member-lp {
+  .group-member-total-lp {
     font-size: 15px;
+  }
+
+  .group-member-today-lp {
+    font-size: 11px;
+  }
+
+  .group-member-bonus-lp {
+    font-size: 10px;
+    padding: 1px 5px;
   }
 }
 
