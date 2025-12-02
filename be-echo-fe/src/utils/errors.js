@@ -16,7 +16,9 @@ export const getFirebaseErrorMessage = (
   // Firebase Auth 에러
   const authErrors = {
     "auth/user-not-found": "등록되지 않은 이메일입니다.",
-    "auth/wrong-password": "비밀번호가 올바르지 않습니다.",
+    "auth/wrong-password": "비밀번호가 틀렸습니다.",
+    "auth/invalid-credential": "아이디 또는 비밀번호가 틀렸습니다.",
+    "auth/invalid-password": "비밀번호가 틀렸습니다.",
     "auth/email-already-in-use": "이미 사용 중인 이메일입니다.",
     "auth/weak-password": "비밀번호는 6자 이상이어야 합니다.",
     "auth/invalid-email": "올바른 이메일 형식이 아닙니다.",
@@ -34,6 +36,20 @@ export const getFirebaseErrorMessage = (
 
   if (authErrors[errorCode]) {
     return authErrors[errorCode];
+  }
+
+  const errorMessageLower = errorMessage.toLowerCase();
+  if (
+    errorMessageLower.includes("wrong password") ||
+    errorMessageLower.includes("invalid password") ||
+    errorMessageLower.includes("invalid credential") ||
+    errorMessageLower.includes("비밀번호") ||
+    (errorMessageLower.includes("password") &&
+      (errorMessageLower.includes("incorrect") ||
+        errorMessageLower.includes("wrong") ||
+        errorMessageLower.includes("invalid")))
+  ) {
+    return "비밀번호가 틀렸습니다.";
   }
 
   // HTTP 에러 코드 처리
