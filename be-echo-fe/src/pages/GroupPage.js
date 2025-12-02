@@ -389,34 +389,74 @@ const GroupPage = () => {
             </div>
           </div>
 
-          {/* 멤버 목록 */}
+          {/* 멤버 목록 및 오늘의 LP */}
           <section className="group-section">
             <h4 className="group-section-title">멤버 목록</h4>
             <div className="group-members-list">
               {groupMembers.length > 0 ? (
-                groupMembers.map((member, index) => (
-                  <div key={member.id || index} className="group-member-item">
-                    <div className="group-member-avatar">
-                      {member.photoURL ? (
-                        <img src={member.photoURL} alt={member.name} />
-                      ) : (
-                        <span>{member.name?.[0] || "?"}</span>
-                      )}
-                    </div>
-                    <div className="group-member-info">
-                      <div className="group-member-name">
-                        {member.name || "이름 없음"}
-                        {member.id === currentGroup.leaderId && (
-                          <span className="group-member-badge">그룹장</span>
-                        )}
-                      </div>
-                      <div className="group-member-meta">
-                        {member.lp || 0} LP · {member.streakDays || 0}일 연속
-                      </div>
-                    </div>
-                    <div className="group-member-lp">{member.lp || 0} LP</div>
-                  </div>
-                ))
+                (() => {
+                  const verifiedMemberIds = new Set(
+                    todayVerifications.map((v) => v.userId)
+                  );
+                  const allMembersVerified =
+                    groupMembers.length > 0 &&
+                    groupMembers.every((m) => verifiedMemberIds.has(m.id));
+
+                  return groupMembers
+                    .sort((a, b) => {
+                      const aVerified = verifiedMemberIds.has(a.id);
+                      const bVerified = verifiedMemberIds.has(b.id);
+                      if (aVerified !== bVerified) return bVerified ? 1 : -1;
+                      return (b.lp || 0) - (a.lp || 0);
+                    })
+                    .map((member, index) => {
+                      const isVerified = verifiedMemberIds.has(member.id);
+                      const todayLP = isVerified ? 10 : 0;
+                      const bonusLP = allMembersVerified && isVerified ? 30 : 0;
+                      const totalTodayLP = todayLP + bonusLP;
+
+                      return (
+                        <div key={member.id || index} className="group-member-item">
+                          <div className="group-member-avatar">
+                            {member.photoURL ? (
+                              <img src={member.photoURL} alt={member.name} />
+                            ) : (
+                              <span>{member.name?.[0] || "?"}</span>
+                            )}
+                          </div>
+                          <div className="group-member-info">
+                            <div className="group-member-name">
+                              {member.name || "이름 없음"}
+                              {member.id === currentGroup.leaderId && (
+                                <span className="group-member-badge">그룹장</span>
+                              )}
+                              {isVerified && (
+                                <span className="group-member-verified-badge">✓</span>
+                              )}
+                            </div>
+                            <div className="group-member-meta">
+                              총 {member.lp || 0} LP · {member.streakDays || 0}일 연속
+                            </div>
+                          </div>
+                          <div className="group-member-lp-info">
+                            <div className="group-member-total-lp">{member.lp || 0} LP</div>
+                            {totalTodayLP > 0 ? (
+                              <div className="group-member-today-lp">
+                                <span>오늘 +{todayLP}</span>
+                                {bonusLP > 0 && (
+                                  <span className="group-member-bonus-lp">
+                                    +{bonusLP}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="group-member-today-lp empty">오늘 0</div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    });
+                })()
               ) : (
                 <div className="group-empty-members">
                   <p>아직 멤버가 없어요</p>
@@ -594,7 +634,6 @@ const GroupPage = () => {
         isOpen={isLPInfoModalOpen}
         onClose={() => setIsLPInfoModalOpen(false)}
         members={groupMembers}
-        todayVerifications={todayVerifications}
       />
     </div>
   );
