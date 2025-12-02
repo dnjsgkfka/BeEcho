@@ -472,8 +472,13 @@ const buildInsights = (state, derived) => {
 }
 const buildViewModel = (state) => {
   const successEntries = state.history.filter((entry) => entry.success);
-  const totalSuccess = successEntries.length;
-  const totalFail = state.history.length - totalSuccess;
+  const historySuccessCount = successEntries.length;
+  const totalSuccess =
+    state.user.totalSuccessCount !== undefined &&
+    state.user.totalSuccessCount !== null
+      ? Math.max(state.user.totalSuccessCount, historySuccessCount)
+      : historySuccessCount;
+  const totalFail = state.history.length - historySuccessCount;
 
   const fact =
     footprintFacts.find((item) => item.id === state.fact?.id) ?? null;
