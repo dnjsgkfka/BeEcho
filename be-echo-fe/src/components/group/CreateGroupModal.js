@@ -4,6 +4,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { createGroup, leaveGroup, getGroup } from "../../services/groups";
 import { logError } from "../../utils/logger";
+import { getFirebaseErrorMessage } from "../../utils/errors";
 
 const CreateGroupModal = ({ isOpen, onClose, onSuccess }) => {
   const { user } = useAuth();
@@ -55,7 +56,7 @@ const CreateGroupModal = ({ isOpen, onClose, onSuccess }) => {
       } catch (error) {
         logError("그룹 나가기 오류:", error);
         setError(
-          error.message || "그룹 나가기에 실패했습니다. 다시 시도해주세요."
+          getFirebaseErrorMessage(error, "그룹 나가기에 실패했습니다. 다시 시도해주세요.")
         );
         setIsCreating(false);
         return;
@@ -83,7 +84,7 @@ const CreateGroupModal = ({ isOpen, onClose, onSuccess }) => {
       }
     } catch (error) {
       logError("그룹 생성 오류:", error);
-      setError(error.message || "그룹 생성에 실패했습니다. 다시 시도해주세요.");
+      setError(getFirebaseErrorMessage(error, "그룹 생성에 실패했습니다. 다시 시도해주세요."));
     } finally {
       setIsCreating(false);
     }

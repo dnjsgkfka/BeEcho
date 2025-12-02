@@ -11,8 +11,9 @@ export const getFirebaseErrorMessage = (
   if (!error) return defaultMessage;
 
   const errorCode = error.code || error.message;
+  const errorMessage = error.message || "";
 
-  // Firebase Auth
+  // Firebase Auth 에러
   const authErrors = {
     "auth/user-not-found": "등록되지 않은 이메일입니다.",
     "auth/wrong-password": "비밀번호가 올바르지 않습니다.",
@@ -35,15 +36,65 @@ export const getFirebaseErrorMessage = (
     return authErrors[errorCode];
   }
 
+  // HTTP 에러 코드 처리
+  if (errorMessage.includes("400") || errorMessage.includes("Bad Request")) {
+    return "잘못된 요청입니다. 입력 정보를 확인해주세요.";
+  }
+  if (errorMessage.includes("401") || errorMessage.includes("Unauthorized")) {
+    return "인증이 필요합니다. 다시 로그인해주세요.";
+  }
+  if (errorMessage.includes("403") || errorMessage.includes("Forbidden")) {
+    return "접근 권한이 없습니다.";
+  }
+  if (errorMessage.includes("404") || errorMessage.includes("Not Found")) {
+    return "요청한 정보를 찾을 수 없습니다.";
+  }
+  if (
+    errorMessage.includes("500") ||
+    errorMessage.includes("Internal Server Error")
+  ) {
+    return "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+  }
+  if (
+    errorMessage.includes("503") ||
+    errorMessage.includes("Service Unavailable")
+  ) {
+    return "서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요.";
+  }
+
+  // 네트워크 관련 에러
+  if (
+    errorMessage.includes("Network") ||
+    errorMessage.includes("network") ||
+    errorMessage.includes("fetch") ||
+    errorMessage.includes("Failed to fetch")
+  ) {
+    return "네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.";
+  }
+
   // redirect_uri 관련 에러
   if (
-    error.message?.includes("redirect_uri") ||
-    error.message?.includes("redirect_uri_mismatch")
+    errorMessage.includes("redirect_uri") ||
+    errorMessage.includes("redirect_uri_mismatch")
   ) {
     return "로그인 설정 오류가 발생했습니다. 관리자에게 문의해주세요.";
   }
 
-  // 기본 메시지
-  return error.message || defaultMessage;
-};
+  if (
+    errorMessage.includes("http://") ||
+    errorMessage.includes("https://") ||
+    errorMessage.includes("HTTP") ||
+    errorMessage.includes("Error:") ||
+    errorMessage.includes("TypeError:") ||
+    errorMessage.includes("SyntaxError:")
+  ) {
+    return defaultMessage;
+  }
 
+  // 기본 메시지
+  return errorMessage &&
+    !errorMessage.includes("http") &&
+    !errorMessage.includes("Error:")
+    ? errorMessage
+    : defaultMessage;
+};
