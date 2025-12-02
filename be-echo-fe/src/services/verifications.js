@@ -17,7 +17,7 @@ import {
 import { storage, db } from "../config/firebase";
 import { getLocalDateString } from "../utils/date";
 import { VERIFICATION_LP, GROUP_BONUS_LP } from "../constants/app";
-import { logError } from "../utils/logger";
+import { logError, logWarn } from "../utils/logger";
 
 /**
  * DataURL을 Blob으로 변환
@@ -313,7 +313,9 @@ export const getRecentVerifications = async (userId, limitCount = 6) => {
     });
   } catch (error) {
     if (error.code === "failed-precondition") {
-      logError("Firebase 인덱스가 필요합니다.", error);
+      logWarn(
+        "Firebase 인덱스가 아직 생성되지 않았습니다. Fallback 쿼리를 사용합니다."
+      );
       const verificationsRef = collection(db, "verifications");
       const q = query(
         verificationsRef,

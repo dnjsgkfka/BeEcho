@@ -6,12 +6,8 @@ import { getFirebaseErrorMessage } from "../utils/errors";
 import { logError } from "../utils/logger";
 
 const LoginPage = () => {
-  const {
-    signInWithGoogle,
-    signInWithEmail,
-    signUpWithEmail,
-    loading,
-  } = useAuth();
+  const { signInWithGoogle, signInWithEmail, signUpWithEmail, loading } =
+    useAuth();
   const [mode, setMode] = useState("login"); // "login" or "signup"
   const [authMethod, setAuthMethod] = useState("email"); // "email" or "google"
   const [email, setEmail] = useState("");
@@ -21,7 +17,10 @@ const LoginPage = () => {
   const [error, setError] = useState(null);
 
   const getErrorMessage = (error) => {
-    return getFirebaseErrorMessage(error, "오류가 발생했습니다. 다시 시도해주세요.");
+    return getFirebaseErrorMessage(
+      error,
+      "오류가 발생했습니다. 다시 시도해주세요."
+    );
   };
 
   const handleGoogleSignIn = async () => {
@@ -32,7 +31,7 @@ const LoginPage = () => {
       await signInWithGoogle();
     } catch (err) {
       logError("로그인 오류:", err);
-      setError("로그인에 실패했습니다. 다시 시도해주세요.");
+      setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
