@@ -235,12 +235,6 @@ npm run build
 | Pillow (PIL)     | https://pillow.readthedocs.io                |
 | FastAPI-CORS     | https://fastapi.tiangolo.com/tutorial/cors   |
 | Python-Multipart | https://github.com/andrew-d/python-multipart |
-| scikit-learn     | https://scikit-learn.org                     |
-| PyYAML           | https://pyyaml.org                           |
-| PyTorch          | https://pytorch.org                          |
-| NumPy            | https://numpy.org                            |
-| OpenCV           | https://opencv.org                           |
-| Matplotlib       | https://matplotlib.org                       |
 
 ### JavaScript 라이브러리
 
@@ -251,7 +245,6 @@ npm run build
 | Create React App          | https://create-react-app.dev                |
 | Firebase                  | https://firebase.google.com                 |
 | html2canvas               | https://html2canvas.hertzen.com             |
-| Web Vitals                | https://web.dev/vitals/                     |
 | @testing-library/react    | https://testing-library.com/react           |
 | @testing-library/jest-dom | https://github.com/testing-library/jest-dom |
 
