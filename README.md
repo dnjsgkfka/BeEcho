@@ -1,4 +1,4 @@
-![Image](https://github.com/user-attachments/assets/a54b40bd-c3fe-4778-b705-6658f2d7dd3f)
+![Image](https://github.com/user-attachments/assets/89151f5c-f042-4b39-83d3-dfdf3a2d85d7)
 
 ## link
 BeEcho.는 모바일 전용으로 만들어졌으며, 모바일 환경에서 사용하는 것을 권장합니다.
@@ -18,7 +18,7 @@ password: 123456
 1. [Why?](#why)
 2. [주요 기능](#주요-기능)
 3. [AI Model & Performance](#ai-model--performance)
-4. [설치 및 실행](#설치-및-실행행)
+4. [설치 및 실행](#설치-및-실행)
 5. [기술 스택](#기술-스택)
 6. [레퍼런스](#레퍼런스)
 7. [라이선스](#라이선스)
@@ -41,14 +41,14 @@ YOLOv8 AI 기술로 텀블러 사용을 쉽게 인증하고, 그 결과를 공�
 ---
 
 ## 주요 기능
-![Image](https://github.com/user-attachments/assets/06e914a4-0680-4110-9442-2463c3ae08d2)
-![Image](https://github.com/user-attachments/assets/ba7c712e-0b53-40e0-abcb-a8885b128099)
-![Image](https://github.com/user-attachments/assets/1af84b6a-b0f8-449f-a4d5-01a8d074cdc0)
-![Image](https://github.com/user-attachments/assets/f34dd3f1-5107-4e44-a178-25f7c51d0233)
-![Image](https://github.com/user-attachments/assets/184d99bf-057a-4c8e-bfe6-a9ffa9567f1f)
-![Image](https://github.com/user-attachments/assets/4fbdf389-45da-4184-a07e-77d6e07b95f7)
-![Image](https://github.com/user-attachments/assets/d9dd142c-2258-4de9-b3f6-c94743a31291)
-![Image](https://github.com/user-attachments/assets/4a29c149-8245-4c73-8e8d-ec101c8ddcf7)
+![Image](https://github.com/user-attachments/assets/e1cb5a53-45a6-47c1-b921-11ab7a4659a4)
+![Image](https://github.com/user-attachments/assets/cf0a02a7-c2d1-4fc0-93ae-77e681267146)
+![Image](https://github.com/user-attachments/assets/1a7036b8-471f-42d9-a442-70e646719424)
+![Image](https://github.com/user-attachments/assets/ae79c7ca-bd49-4255-b500-f11f2855de39)
+![Image](https://github.com/user-attachments/assets/e3068d87-57e1-4bf3-a84c-8d356e80a337)
+![Image](https://github.com/user-attachments/assets/2b6bc0c5-74e4-4187-8582-49f754e466a7)
+![Image](https://github.com/user-attachments/assets/5d7e5de3-c0a9-45b3-beaf-a9bc7b292606)
+![Image](https://github.com/user-attachments/assets/81578a76-cdd1-4dbf-9387-65eaff8dec21)
 
 ---
 
@@ -117,8 +117,6 @@ labelImg를 사용하여 직접 라벨링 작업을 하였습니다.
 - **Python**: 3.8 이상
 - **Firebase**: Firebase 프로젝트 (Firebase Console에서 생성)
 
----
-
 ### 1. 프론트엔드 설정
 
 #### 1.1 저장소 클론 및 의존성 설치
@@ -174,8 +172,6 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 
 백엔드 서버는 `http://localhost:8000`에서 실행됩니다.
 
----
-
 ### 3. 전체 실행 가이드
 
 터미널 2개를 열어서 각각 실행해주세요.
@@ -193,8 +189,6 @@ uvicorn main:app --host 0.0.0.0 --port 8000
    ```
 
 3. 브라우저에서 `http://localhost:3000` 접속
-
----
 
 ### 4. 빌드 (프로덕션 배포용)
 
