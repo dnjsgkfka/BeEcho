@@ -3,6 +3,7 @@ import "../../styles/group-modal.css";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { logError } from "../../utils/logger";
+import { getFirebaseErrorMessage } from "../../utils/errors";
 
 const GroupSettingsModal = ({
   isOpen,
@@ -41,7 +42,7 @@ const GroupSettingsModal = ({
       toast.success("그룹 이름이 변경되었습니다.");
     } catch (error) {
       logError("그룹 이름 변경 오류:", error);
-      toast.error("그룹 이름 변경 중 오류가 발생했습니다.");
+      toast.error(getFirebaseErrorMessage(error, "그룹 이름 변경 중 오류가 발생했습니다."));
     } finally {
       setIsUpdating(false);
     }
@@ -55,7 +56,7 @@ const GroupSettingsModal = ({
       toast.success("공지사항이 업데이트되었습니다.");
     } catch (error) {
       logError("공지사항 업데이트 오류:", error);
-      toast.error("공지사항 업데이트 중 오류가 발생했습니다.");
+      toast.error(getFirebaseErrorMessage(error, "공지사항 업데이트 중 오류가 발생했습니다."));
     } finally {
       setIsUpdatingAnnouncement(false);
     }
@@ -75,7 +76,7 @@ const GroupSettingsModal = ({
       toast.success(`${memberName}님이 그룹에서 제거되었습니다.`);
     } catch (error) {
       logError("멤버 방출 오류:", error);
-      toast.error("멤버 방출 중 오류가 발생했습니다.");
+      toast.error(getFirebaseErrorMessage(error, "멤버 방출 중 오류가 발생했습니다."));
     }
   };
 
@@ -94,7 +95,7 @@ const GroupSettingsModal = ({
       onClose();
     } catch (error) {
       logError("그룹 나가기 오류:", error);
-      toast.error("그룹 나가기 중 오류가 발생했습니다.");
+      toast.error(getFirebaseErrorMessage(error, "그룹 나가기 중 오류가 발생했습니다."));
     }
   };
 
@@ -303,7 +304,7 @@ const GroupSettingsModal = ({
                         onClose();
                       } catch (error) {
                         logError("그룹 삭제 오류:", error);
-                        toast.error("그룹 삭제 중 오류가 발생했습니다.");
+                        toast.error(getFirebaseErrorMessage(error, "그룹 삭제 중 오류가 발생했습니다."));
                       }
                     }
                   }

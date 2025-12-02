@@ -11,6 +11,7 @@ import { useAppData } from "../contexts/AppDataContext";
 import { useAuth } from "../contexts/AuthContext";
 import useTumblerVerification from "../hooks/useTumblerVerification";
 import { log, logError, logWarn } from "../utils/logger";
+import { getFirebaseErrorMessage } from "../utils/errors";
 import {
   uploadVerificationImage,
   saveVerification,
@@ -226,7 +227,7 @@ const VerificationPage = () => {
         } catch (error) {
           logError("인증 저장 오류:", error);
           setVerificationError(
-            error.message || "인증 저장 중 오류가 발생했습니다."
+            getFirebaseErrorMessage(error, "인증 저장 중 오류가 발생했습니다.")
           );
           setSuccessImageDataUrl(null);
         } finally {
