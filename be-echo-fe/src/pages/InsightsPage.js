@@ -47,26 +47,68 @@ const InsightsPage = () => {
     };
   }, [loadVerifiedDates]);
 
-  const { currentWeek, previousWeek, diffLabel, maxTrendCount } =
-    useMemo(() => {
-      const trend = insights.weeklyTrend;
-      const latest = trend[trend.length - 1] || { label: "이번 주", count: 0 };
-      const prev = trend[trend.length - 2] || { label: "지난 주", count: 0 };
-      const diff = latest.count - (prev.count || 0);
-      const diffLabel =
-        diff === 0
-          ? "지난 주와 동일"
-          : diff > 0
-          ? `+${diff}회 증가`
-          : `${diff}회 감소`;
-      const max = Math.max(...trend.map((item) => item.count || 0), 1);
-      return {
-        currentWeek: latest,
-        previousWeek: prev,
-        diffLabel,
-        maxTrendCount: max,
-      };
-    }, [insights.weeklyTrend]);
+  const thisMonthCount = useMemo(() => {
+    const today = new Date();
+    const currentMonthStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      1
+    );
+    const currentMonthEnd = new Date(
+      today.getFullYear(),
+      today.getMonth() + 1,
+      1
+    );
+
+    return verifiedDates.filter((dateStr) => {
+      const date = new Date(dateStr);
+      return date >= currentMonthStart && date < currentMonthEnd;
+    }).length;
+  }, [verifiedDates]);
+
+  const { currentWeek, previousWeek, diffLabel } = useMemo(() => {
+    const startOfWeek = (date) => {
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      const day = d.getDay();
+      const diff = (day + 6) % 7;
+      d.setDate(d.getDate() - diff);
+      return d;
+    };
+
+    const today = new Date();
+    const currentWeekStart = startOfWeek(today);
+    const currentWeekEnd = new Date(currentWeekStart);
+    currentWeekEnd.setDate(currentWeekEnd.getDate() + 7);
+
+    const previousWeekStart = new Date(currentWeekStart);
+    previousWeekStart.setDate(previousWeekStart.getDate() - 7);
+    const previousWeekEnd = new Date(currentWeekStart);
+
+    const currentWeekCount = verifiedDates.filter((dateStr) => {
+      const date = new Date(dateStr);
+      return date >= currentWeekStart && date < currentWeekEnd;
+    }).length;
+
+    const previousWeekCount = verifiedDates.filter((dateStr) => {
+      const date = new Date(dateStr);
+      return date >= previousWeekStart && date < previousWeekEnd;
+    }).length;
+
+    const diff = currentWeekCount - previousWeekCount;
+    const diffLabel =
+      diff === 0
+        ? "지난 주와 동일"
+        : diff > 0
+        ? `+${diff}회 증가`
+        : `${diff}회 감소`;
+
+    return {
+      currentWeek: { label: "이번 주", count: currentWeekCount },
+      previousWeek: { label: "지난 주", count: previousWeekCount },
+      diffLabel,
+    };
+  }, [verifiedDates]);
 
   return (
     <div className="insights-page">
@@ -78,9 +120,9 @@ const InsightsPage = () => {
             accent="streak"
           />
           <StatPill
-            label="인증 실패"
-            value={`${insights.summary.totalFail}회`}
-            accent="danger"
+            label="이번 달 인증"
+            value={`${thisMonthCount}회`}
+            accent="clean"
           />
           <StatPill
             label="최고 스트릭"

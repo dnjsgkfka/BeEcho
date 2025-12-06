@@ -24,6 +24,7 @@ import {
   where,
   onSnapshot,
   Timestamp,
+  getDoc,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import {
@@ -84,11 +85,34 @@ const GroupPage = () => {
     const membersRef = collection(db, "groups", groupId, "members");
     const unsubscribeMembers = onSnapshot(
       membersRef,
-      (membersSnapshot) => {
-        const members = membersSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+      async (membersSnapshot) => {
+        const members = await Promise.all(
+          membersSnapshot.docs.map(async (doc) => {
+            const memberData = {
+              id: doc.id,
+              ...doc.data(),
+            };
+
+            try {
+              const userRef = doc(db, "users", doc.id);
+              const userDoc = await getDoc(userRef);
+              if (userDoc.exists()) {
+                const userData = userDoc.data();
+                return {
+                  ...memberData,
+                  lp: userData.lp || 0,
+                  streakDays: userData.streakDays || 0,
+                  name: userData.name || memberData.name,
+                  photoURL: userData.photoURL || memberData.photoURL,
+                };
+              }
+            } catch (userError) {
+              logError(`사용자 ${doc.id} 정보 가져오기 오류:`, userError);
+            }
+
+            return memberData;
+          })
+        );
         setGroupMembers(members);
       },
       (error) => {
@@ -250,10 +274,16 @@ const GroupPage = () => {
           <div className="group-info-card">
             <div className="group-info-header">
               <div style={{ flex: 1 }}>
-                <Skeleton width="120px" height="24px" style={{ marginBottom: "8px" }} />
+                <Skeleton
+                  width="120px"
+                  height="24px"
+                  style={{ marginBottom: "8px" }}
+                />
                 <Skeleton width="100px" height="16px" />
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "8px" }}
+              >
                 <Skeleton width="60px" height="28px" borderRadius="12px" />
                 <Skeleton width="32px" height="32px" borderRadius="8px" />
               </div>
@@ -265,14 +295,22 @@ const GroupPage = () => {
             </div>
           </div>
           <section className="group-section">
-            <Skeleton width="100px" height="20px" style={{ marginBottom: "16px" }} />
+            <Skeleton
+              width="100px"
+              height="20px"
+              style={{ marginBottom: "16px" }}
+            />
             <div className="group-members-list">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="group-member-item">
                   <Skeleton width="40px" height="40px" borderRadius="50%" />
                   <div style={{ flex: 1, marginLeft: "12px" }}>
                     <Skeleton width="60%" height="16px" />
-                    <Skeleton width="40%" height="14px" style={{ marginTop: "8px" }} />
+                    <Skeleton
+                      width="40%"
+                      height="14px"
+                      style={{ marginTop: "8px" }}
+                    />
                   </div>
                   <Skeleton width="60px" height="20px" />
                 </div>
@@ -416,7 +454,10 @@ const GroupPage = () => {
                       const totalTodayLP = todayLP + bonusLP;
 
                       return (
-                        <div key={member.id || index} className="group-member-item">
+                        <div
+                          key={member.id || index}
+                          className="group-member-item"
+                        >
                           <div className="group-member-avatar">
                             {member.photoURL ? (
                               <img src={member.photoURL} alt={member.name} />
@@ -428,18 +469,25 @@ const GroupPage = () => {
                             <div className="group-member-name">
                               {member.name || "이름 없음"}
                               {member.id === currentGroup.leaderId && (
-                                <span className="group-member-badge">그룹장</span>
+                                <span className="group-member-badge">
+                                  그룹장
+                                </span>
                               )}
                               {isVerified && (
-                                <span className="group-member-verified-badge">✓</span>
+                                <span className="group-member-verified-badge">
+                                  ✓
+                                </span>
                               )}
                             </div>
                             <div className="group-member-meta">
-                              총 {member.lp || 0} LP · {member.streakDays || 0}일 연속
+                              총 {member.lp || 0} LP · {member.streakDays || 0}
+                              일 연속
                             </div>
                           </div>
                           <div className="group-member-lp-info">
-                            <div className="group-member-total-lp">{member.lp || 0} LP</div>
+                            <div className="group-member-total-lp">
+                              {member.lp || 0} LP
+                            </div>
                             {totalTodayLP > 0 ? (
                               <div className="group-member-today-lp">
                                 <span>오늘 +{todayLP}</span>
@@ -450,7 +498,9 @@ const GroupPage = () => {
                                 )}
                               </div>
                             ) : (
-                              <div className="group-member-today-lp empty">오늘 0</div>
+                              <div className="group-member-today-lp empty">
+                                오늘 0
+                              </div>
                             )}
                           </div>
                         </div>

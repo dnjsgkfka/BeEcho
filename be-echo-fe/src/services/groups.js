@@ -374,10 +374,35 @@ export const getGroupMembers = async (groupId) => {
     const membersRef = collection(db, "groups", groupId, "members");
     const membersSnapshot = await getDocs(membersRef);
 
-    return membersSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const members = await Promise.all(
+      membersSnapshot.docs.map(async (doc) => {
+        const memberData = {
+          id: doc.id,
+          ...doc.data(),
+        };
+
+        try {
+          const userRef = doc(db, "users", doc.id);
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            return {
+              ...memberData,
+              lp: userData.lp || 0,
+              streakDays: userData.streakDays || 0,
+              name: userData.name || memberData.name,
+              photoURL: userData.photoURL || memberData.photoURL,
+            };
+          }
+        } catch (userError) {
+          logError(`사용자 ${doc.id} 정보 가져오기 오류:`, userError);
+        }
+
+        return memberData;
+      })
+    );
+
+    return members;
   } catch (error) {
     logError("그룹 멤버 목록 가져오기 오류:", error);
     throw error;

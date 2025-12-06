@@ -9,15 +9,10 @@ import React, {
 } from "react";
 import createDefaultState from "../data/defaultState";
 import footprintFacts from "../data/footprintFacts";
-import {
-  loadState,
-  saveState,
-  clearState,
-  clearAllStates,
-} from "../services/storage";
+import { loadState, saveState, clearState } from "../services/storage";
 import { deriveGradeName } from "../utils/grade";
 import { getLocalDateString } from "../utils/date";
-import { MAX_HISTORY_ENTRIES, INSIGHT_WEEKS } from "../constants/app";
+import { MAX_HISTORY_ENTRIES } from "../constants/app";
 import { logError } from "../utils/logger";
 import { useAuth } from "./AuthContext";
 import {
@@ -52,7 +47,6 @@ const defaultContextValue = {
   history: [],
   insights: {
     summary: {},
-    weeklyTrend: [],
   },
   actions: {
     logVerification: () => {},
@@ -425,37 +419,6 @@ const buildHomeSection = (state, derived) => {
   /* 인사이트 계산 */
 }
 const buildInsights = (state, derived) => {
-  const today = new Date();
-
-  const startOfWeek = (date) => {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    const day = d.getDay();
-    const diff = (day + 6) % 7;
-    d.setDate(d.getDate() - diff);
-    return d;
-  };
-
-  const weeklyTrend = Array.from({ length: INSIGHT_WEEKS }).map((_, index) => {
-    const weekStart = startOfWeek(today);
-    weekStart.setDate(weekStart.getDate() - index * 7);
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekEnd.getDate() + 7);
-
-    const count = state.history.filter((entry) => {
-      if (!entry.success) return false;
-      const entryDate = new Date(entry.timestamp);
-      return entryDate >= weekStart && entryDate < weekEnd;
-    }).length;
-
-    const label = index === 0 ? "이번 주" : `${index}주 전`;
-
-    return {
-      label,
-      count,
-    };
-  });
-
   return {
     summary: {
       totalSuccess: derived.totalSuccess,
@@ -463,7 +426,6 @@ const buildInsights = (state, derived) => {
       bestStreak: state.user.bestStreak ?? 0,
       lp: state.user.lp,
     },
-    weeklyTrend: weeklyTrend.reverse(),
   };
 };
 
