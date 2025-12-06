@@ -96,6 +96,12 @@ labelImg를 사용하여 직접 라벨링 작업을 하였습니다.
 
 <img width="60%" alt="result" src="https://github.com/user-attachments/assets/0660015c-96cd-4779-a957-a8e0232709ae" />
 
+### 5. 학습 코드
+
+모델 학습은 Google Colab에서 YOLOv8을 사용하여 진행되었습니다. 학습 코드와 전체 프로세스는 다음 노트북에서 확인할 수 있습니다:
+
+**[학습 노트북 확인하기](https://github.com/dnjsgkfka/be-echo/blob/main/be-echo-yolo/be_echo_yolo.ipynb)**
+
 ---
 
 ## 주요 기능
