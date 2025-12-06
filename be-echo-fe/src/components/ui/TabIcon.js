@@ -5,13 +5,14 @@ import {
   ChartIcon,
   CameraIcon,
   SettingsIcon,
+  CommunityIcon,
 } from "../icons";
 
 const ICON_MAP = {
   home: HomeIcon,
   camera: CameraIcon,
   group: SettingsIcon,
-  community: SettingsIcon,
+  community: CommunityIcon,
   ranking: TrophyIcon,
   insights: ChartIcon,
   stats: ChartIcon,

@@ -8,6 +8,7 @@ import { ReactComponent as LockIconSvg } from "./LockIcon.svg";
 import { ReactComponent as ChartIconSvg } from "./ChartIcon.svg";
 import { ReactComponent as TrophyIconSvg } from "./TrophyIcon.svg";
 import { ReactComponent as GoogleIconSvg } from "./GoogleIcon.svg";
+import { ReactComponent as CommunityIconSvg } from "./CommunityIcon.svg";
 
 export const CameraIcon = () => <CameraIconSvg />;
 
@@ -34,3 +35,7 @@ export const TrophyIcon = ({ active }) => (
 );
 
 export const GoogleIcon = () => <GoogleIconSvg />;
+
+export const CommunityIcon = ({ active }) => (
+  <CommunityIconSvg className={active ? "active" : ""} />
+);

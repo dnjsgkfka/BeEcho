@@ -3,23 +3,30 @@ import "../styles/home.css";
 import { InfoIcon } from "../components/icons";
 import { StatPill, Character } from "../components/ui";
 import { useAppData } from "../contexts/AppDataContext";
+import { useNavigation } from "../contexts/NavigationContext";
 import { deriveGradeCode, getGradeGuide } from "../utils/grade";
 
 const HomePage = () => {
   const { home, user, fact } = useAppData();
+  const { changeTab } = useNavigation();
   const [isGradeInfoOpen, setGradeInfoOpen] = useState(false);
+
+  const gradeEmojis = {
+    master: "👑",
+    diamond: "🌍",
+    platinum: "🌲",
+    gold: "🌳",
+    silver: "🌿",
+    bronze: "🌱",
+  };
 
   return (
     <section className="screen-section home">
-      {/* 인증 헤더 */}
       <div className="page-heading">
         <p className="date">{home.dateLabel}</p>
-        <h2>
-          {user.name}님, {user.streakDays}일째 인증 중!{" "}
-        </h2>
+        <h2>{user.name}님, 환영합니다!</h2>
       </div>
 
-      {/* 레벨 카드 */}
       <article className="status-card">
         <button
           type="button"
@@ -30,6 +37,28 @@ const HomePage = () => {
         </button>
         <Character lp={user.lp} streakDays={user.streakDays} />
       </article>
+
+      <div className="home-verification-section">
+        <div className="home-verification-header">
+          <h3>오늘의 인증</h3>
+          <div
+            className={`home-verification-badge ${
+              home.canVerify ? "available" : "completed"
+            }`}
+          >
+            {home.canVerify ? "인증 가능" : "완료됨"}
+          </div>
+        </div>
+        <p className="home-verification-message">{home.certificationMessage}</p>
+        {home.canVerify && (
+          <button
+            className="home-verification-button"
+            onClick={() => changeTab("verification")}
+          >
+            인증하러 가기
+          </button>
+        )}
+      </div>
 
       <div className="stat-grid">
         {home.stats.map((stat) => (
@@ -47,10 +76,7 @@ const HomePage = () => {
         <div className="home-modal" role="dialog" aria-modal="true">
           <div className="home-modal-content">
             <header>
-              <div>
-                <h3>등급 안내</h3>
-                <p>LP를 획득하여 더 높은 등급에 도전해보세요!</p>
-              </div>
+              <h3>등급 안내</h3>
               <button
                 type="button"
                 onClick={() => {
@@ -61,20 +87,26 @@ const HomePage = () => {
               </button>
             </header>
             <div className="home-modal-body">
-              <div className="home-guide-grid">
+              <div className="home-grade-list">
                 {getGradeGuide().map((item) => (
                   <article
                     key={item.label}
-                    className={`home-guide-card grade-card accent-${
-                      item.accent
-                    } ${
+                    className={`home-grade-card accent-${item.accent} ${
                       deriveGradeCode(user.lp) === item.accent ? "active" : ""
                     }`}
                   >
-                    <div className="home-guide-text">
-                      <h4>{item.label}</h4>
-                      <span>{item.range}</span>
+                    <div className="home-grade-card-left">
+                      <div className="home-grade-card-emoji">
+                        {gradeEmojis[item.accent]}
+                      </div>
+                      <div className="home-grade-card-content">
+                        <h4>{item.label}</h4>
+                        <span>{item.range}</span>
+                      </div>
                     </div>
+                    {deriveGradeCode(user.lp) === item.accent && (
+                      <div className="home-grade-card-badge">현재</div>
+                    )}
                   </article>
                 ))}
               </div>

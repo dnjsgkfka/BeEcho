@@ -1,7 +1,7 @@
 export const TAB_ITEMS = [
   { id: "home", label: "홈", icon: "home" },
   { id: "verification", label: "인증", icon: "camera" },
-  { id: "community", label: "커뮤니티", icon: "group" },
+  { id: "community", label: "커뮤니티", icon: "community" },
   { id: "stats", label: "통계", icon: "insights" },
 ];
 

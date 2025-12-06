@@ -97,51 +97,198 @@
   justify-content: center;
   padding: 24px;
   z-index: 999;
+  overflow-y: auto;
 }
 
 .home-modal-content {
-  width: min(520px, 100%);
-  background: linear-gradient(145deg, #ffffff, #f5f9ff);
-  border-radius: 24px;
-  padding: 24px 26px;
+  width: min(400px, 100%);
+  max-height: calc(100vh - 48px);
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  box-shadow: 0 20px 48px rgba(9, 19, 31, 0.15);
+  gap: 16px;
+  box-shadow: 0 8px 24px rgba(9, 19, 31, 0.12);
+  overflow: hidden;
 }
 
 .home-modal-content header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 18px;
+  gap: 12px;
 }
 
 .home-modal-content header h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-}
-
-.home-modal-content header p {
-  margin: 6px 0 0;
-  font-size: 13px;
-  color: var(--muted);
+  color: var(--text);
 }
 
 .home-modal-content header button {
   border: none;
-  background: rgba(9, 19, 31, 0.08);
-  border-radius: 14px;
-  padding: 8px 14px;
+  background: rgba(9, 19, 31, 0.06);
+  border-radius: 8px;
+  padding: 6px 12px;
   cursor: pointer;
+  font-size: 13px;
   font-weight: 600;
+  color: var(--text);
+  transition: background 0.2s ease;
+}
+
+.home-modal-content header button:hover {
+  background: rgba(9, 19, 31, 0.1);
 }
 
 .home-modal-body {
   display: flex;
   flex-direction: column;
+  gap: 0;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.home-grade-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-grade-card {
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(9, 19, 31, 0.08);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.home-grade-card:hover {
+  background: rgba(9, 19, 31, 0.02);
+}
+
+.home-grade-card.active {
+  background: rgba(5, 196, 107, 0.06);
+  border-color: rgba(5, 196, 107, 0.2);
+}
+
+.home-grade-card-left {
+  display: flex;
+  align-items: center;
   gap: 14px;
+  flex: 1;
+}
+
+.home-grade-card-emoji {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.home-grade-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.home-grade-card-content h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+
+.home-grade-card-content span {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.home-grade-card-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: #05c46b;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.home-verification-section {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.home-verification-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.home-verification-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.home-verification-badge {
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.home-verification-badge.available {
+  background: rgba(5, 196, 107, 0.15);
+  color: #039a53;
+}
+
+.home-verification-badge.completed {
+  background: rgba(9, 19, 31, 0.08);
+  color: var(--muted);
+}
+
+.home-verification-message {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.home-verification-button {
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: #05c46b;
+  color: #ffffff;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.home-verification-button:hover {
+  background: #039a53;
+  transform: translateY(-1px);
+}
+
+.home-verification-button:active {
+  transform: translateY(0);
 }
 
 .home-guide-grid {
@@ -276,28 +423,55 @@
   }
 
   .home-modal-content {
-    padding: 20px;
+    padding: 16px 18px;
+    width: min(340px, 100%);
+    max-height: calc(100vh - 32px);
   }
 
-  .home-guide-grid:has(.grade-card) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+  .home-modal-content header h3 {
+    font-size: 15px;
   }
 
-  .home-guide-card {
-    padding: 14px 16px;
+  .home-modal-content header button {
+    padding: 5px 10px;
+    font-size: 12px;
   }
 
-  .home-guide-text h4 {
+  .home-verification-section {
+    padding: 16px;
+  }
+
+  .home-verification-header h3 {
+    font-size: 15px;
+  }
+
+  .home-verification-message {
     font-size: 13px;
   }
 
-  .home-guide-text span {
-    font-size: 11px;
+  .home-verification-button {
+    padding: 10px 18px;
+    font-size: 13px;
   }
 
-  .home-guide-text p {
+  .home-grade-card {
+    padding: 14px 16px;
+  }
+
+  .home-grade-card-emoji {
+    font-size: 24px;
+  }
+
+  .home-grade-card-content h4 {
+    font-size: 14px;
+  }
+
+  .home-grade-card-content span {
     font-size: 12px;
-    margin-top: 6px;
+  }
+
+  .home-grade-card-badge {
+    padding: 3px 8px;
+    font-size: 11px;
   }
 }
