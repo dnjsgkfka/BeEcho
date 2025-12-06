@@ -1,4 +1,4 @@
-![Image](https://github.com/user-attachments/assets/89151f5c-f042-4b39-83d3-dfdf3a2d85d7)
+![Image](https://github.com/user-attachments/assets/a5fd68c2-6070-4984-b247-1222ea2379b9)
 
 ## link
 
@@ -17,8 +17,8 @@ password: 123456
 ## 목차
 
 1. [Why?](#why)
-2. [주요 기능](#주요-기능)
-3. [AI Model & Performance](#ai-model--performance)
+2. [AI Model & Performance](#ai-model--performance)
+3. [주요 기능](#주요-기능)
 4. [설치 및 실행](#설치-및-실행)
 5. [기술 스택](#기술-스택)
 6. [레퍼런스](#레퍼런스)
@@ -30,33 +30,20 @@ password: 123456
 
 한국은 고도로 발달된 카페 문화로 세계 최고 수준의 1인당 플라스틱 소비량을 기록하고 있습니다.
 
-국가와 학교 차원에서 플라스틱 소비량을 줄이기 위해 다각도로 텀블러 사용을 독려하고 있지만, 개인의 지속적인 실천을 이끌어내기에는 여전히 어려움이 있습니다.
+이에 국가와 학교 차원에서 플라스틱 소비량을 줄이기 위해 다각도로 텀블러 사용을 독려하고 있지만, 개인의 지속적인 실천을 이끌어내기에는 여전히 어려움이 있습니다.
 
 **소셜 기반 챌린지**는 이러한 한계를 극복합니다. 공공적인 가치를 담은 소셜 챌린지는 개인의 동기를 부여하고, 주변과의 경쟁과 공유를 통해 지속적인 실천을 자연스럽게 유도합니다.
 
 따라서, **BeEcho**는 소셜 기반 텀블러 인증을 통해 환경 보호 문화 확산을 독려합니다.
-YOLOv8 AI 기술로 텀블러 사용을 쉽게 인증하고, 그 결과를 공유하며 환경을 보호하는 습관을 시작해보세요!
+YOLOv8 기반 커스텀 객체인식 모델을 통해 텀블러 사용을 쉽게 인증하고, 그 결과를 공유하며 환경을 보호하는 습관을 시작해보세요!
 
-![Image](https://github.com/user-attachments/assets/3d3f74b4-0774-4e3d-a68d-eef18a1ba890)
-
----
-
-## 주요 기능
-
-![Image](https://github.com/user-attachments/assets/e1cb5a53-45a6-47c1-b921-11ab7a4659a4)
-![Image](https://github.com/user-attachments/assets/cf0a02a7-c2d1-4fc0-93ae-77e681267146)
-![Image](https://github.com/user-attachments/assets/1a7036b8-471f-42d9-a442-70e646719424)
-![Image](https://github.com/user-attachments/assets/ae79c7ca-bd49-4255-b500-f11f2855de39)
-![Image](https://github.com/user-attachments/assets/e3068d87-57e1-4bf3-a84c-8d356e80a337)
-![Image](https://github.com/user-attachments/assets/2b6bc0c5-74e4-4187-8582-49f754e466a7)
-![Image](https://github.com/user-attachments/assets/5d7e5de3-c0a9-45b3-beaf-a9bc7b292606)
-![Image](https://github.com/user-attachments/assets/81578a76-cdd1-4dbf-9387-65eaff8dec21)
+![Image](https://github.com/user-attachments/assets/631f63af-a34d-4a8d-abdd-e6465f4169f2)
 
 ---
 
 ## AI Model & Performance
 
-BeEcho.는 **YOLOv8 기반의 커스텀 객체 인식 모델**을 탑재하여, 실생활의 다양한 환경에서도 텀블러와 일회용 컵을 구분합니다.
+BeEcho.는 **YOLOv8 기반의 커스텀 객체 인식 모델**을 탑재하여, 실생활의 다양한 환경에서도 텀블러를 쉽게 인증할 수 있습니다.
 
 BeEcho.는 다음과 같은 이유로 기존의 대량 데이터셋이 아닌, 600장의 소규모 데이터셋을 직접 구축하였습니다.
 ![Image](https://github.com/user-attachments/assets/833e9c9e-4037-4828-80b6-2bca5e0913d6)
@@ -65,12 +52,12 @@ BeEcho.는 다음과 같은 이유로 기존의 대량 데이터셋이 아닌, 6
 
 최종 모델의 class는 다음과 같습니다.
 
-| Class              |
-| :----------------- |
-| **Tumbler**        |
-| **Disposable Cup** |
+| Class              | Number |
+| :----------------- | :----- |
+| **Tumbler**        | 250    |
+| **Disposable Cup** | 250    |
 
-- **Negative Samples**: 텀블러로 오인되기 쉬운 원기둥 물체를 라벨링하지 않고 배경 이미지로 추가하였습니다.
+- **Negative Samples** (100장): 로션 통, 페트병과 같이 텀블러로 오인되기 쉬운 원기둥 물체를 라벨이 없는 배경 이미지로 추가하였습니다.
 
 ### 2. Labeling
 
@@ -82,7 +69,7 @@ labelImg를 사용하여 직접 라벨링 작업을 하였습니다.
 
 ### 3. Performance Analysis
 
-처음 학습한 모델은 다음과 같은 문제점이 있어 개선하였습니다.
+초기 모델은 텀블러 100장, 일회용 컵 100장의 데이터셋으로 학습하였으며 다음과 같은 문제점이 있어 개선 및 확장하였습니다.
 
 ![Image](https://github.com/user-attachments/assets/55a8d72b-54a6-4f06-a2d4-241429a66b75)
 
@@ -107,8 +94,21 @@ labelImg를 사용하여 직접 라벨링 작업을 하였습니다.
 
 ### 4. Result
 
-**[Training Results]**
-<img width="100%" alt="result" src="https://github.com/user-attachments/assets/0660015c-96cd-4779-a957-a8e0232709ae" />
+<img width="60%" alt="result" src="https://github.com/user-attachments/assets/0660015c-96cd-4779-a957-a8e0232709ae" />
+
+---
+
+## 주요 기능
+
+![홈](https://github.com/user-attachments/assets/39a19f01-44ec-4d40-b6c8-3f911b587003)
+![인증](https://github.com/user-attachments/assets/57a6d783-0226-40ac-8610-85fe070d4188)
+![텀블러](https://github.com/user-attachments/assets/4a2afd1e-ac22-4e45-9bfb-c87342c12ef9)
+![일회용컵](https://github.com/user-attachments/assets/2ad35e7d-8cb4-41b6-8b77-61a0ba29da98)
+![원기둥물체](https://github.com/user-attachments/assets/275e3098-0cb8-4c6c-8a14-4a52b8e295af)
+![그룹1](https://github.com/user-attachments/assets/0ca462c8-d22b-4724-994e-b50d344ff66d)
+![그룹2](https://github.com/user-attachments/assets/445b87b9-e503-477b-94eb-b4e8d858a0cb)
+![랭킹](https://github.com/user-attachments/assets/7906ccfd-bdfd-4a2d-8f4e-930e92a713ef)
+![통계](https://github.com/user-attachments/assets/4af25a57-fbd9-4406-8f1a-43c9a786aad7)
 
 ---
 
