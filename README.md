@@ -17,7 +17,7 @@ password: 123456
 ## 목차
 
 1. [Why?](#why)
-2. [AI Model & Performance](#ai-model--performance)
+2. [AI Pipeline & Strategy](#ai-pipeline--strategy)
 3. [주요 기능](#주요-기능)
 4. [설치 및 실행](#설치-및-실행)
 5. [기술 스택](#기술-스택)
@@ -41,7 +41,7 @@ YOLOv8 기반 커스텀 객체인식 모델을 통해 텀블러 사용을 쉽게
 
 ---
 
-## AI Model & Performance
+## AI Pipeline & Strategy
 
 BeEcho.는 **YOLOv8 기반의 커스텀 객체 인식 모델**을 탑재하여, 실생활의 다양한 환경에서도 텀블러를 쉽게 인증할 수 있습니다.
 
@@ -67,7 +67,28 @@ labelImg를 사용하여 직접 라벨링 작업을 하였습니다.
 | :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: |
 | <img src="https://github.com/user-attachments/assets/4fd69abe-9888-4d86-a5e7-3590fa399a6f" width="100%" /> | <img src="https://github.com/user-attachments/assets/c8db6991-d9d0-4335-949e-2c5aa79d255b" width="100%" /> |
 
-### 3. Performance Analysis
+### 3. Training Strategy
+
+- **Data Split Strategy (8:1:1)**
+  - 전체 600장의 데이터를 **Train(80%) : Validation(10%) : Test(10%)** 비율로 분리하여 학습하였습니다.
+
+- **Training Configuration**
+  - **Model:** `yolov8n.pt` (Nano) 모델을 기반으로 전이 학습을 수행하였습니다.
+  - **Environment:** Google Colab (Tesla T4 GPU) 환경에서 학습하였습니다.
+  - **Hyperparameters:**
+    
+    - Epochs: `100`
+    - Batch Size: `16`
+    - Image Size: `640`
+      
+      - YOLOv8 모델의 표준 입력 크기를 준수하였습니다.
+
+학습 코드와 전체 프로세스는 다음 노트북에서 확인할 수 있습니다:
+
+**[학습 노트북 확인하기](https://github.com/dnjsgkfka/be-echo/blob/main/be-echo-yolo/be_echo_yolo.ipynb)**
+
+
+### 4. Performance Analysis
 
 초기 모델은 텀블러 100장, 일회용 컵 100장의 데이터셋으로 학습하였으며 다음과 같은 문제점이 있어 개선 및 확장하였습니다.
 
@@ -92,15 +113,9 @@ labelImg를 사용하여 직접 라벨링 작업을 하였습니다.
 
   <img src="https://github.com/user-attachments/assets/8f8288d1-7afc-425d-a4d7-cb3217b0caac" width="80%"/>
 
-### 4. Result
+### 5. Result
 
 <img width="60%" alt="result" src="https://github.com/user-attachments/assets/0660015c-96cd-4779-a957-a8e0232709ae" />
-
-### 5. 학습 코드
-
-모델 학습은 Google Colab에서 YOLOv8을 사용하여 진행되었습니다. 학습 코드와 전체 프로세스는 다음 노트북에서 확인할 수 있습니다:
-
-**[학습 노트북 확인하기](https://github.com/dnjsgkfka/be-echo/blob/main/be-echo-yolo/be_echo_yolo.ipynb)**
 
 ---
 
